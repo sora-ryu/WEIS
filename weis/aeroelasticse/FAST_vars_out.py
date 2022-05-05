@@ -9923,6 +9923,7 @@ FstOutput['Morison']          = Morison
 FstOutput['SubDyn']           = SubDyn
 FstOutput['BeamDyn']          = BeamDyn
 FstOutput['MoorDyn']          = MoorDyn
+FstOutput['SeaState']          = {}
 
 """ Generated from FAST OutListParameters.xlsx files with AeroelasticSE/src/AeroelasticSE/Util/create_output_vars.py """
 
