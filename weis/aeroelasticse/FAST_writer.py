@@ -172,6 +172,8 @@ class InputWriter_OpenFAST(object):
         
         if self.fst_vt['Fst']['CompHydro'] == 1:
             self.write_HydroDyn()
+        if self.fst_vt['Fst']['CompSeaState'] == 1:
+            self.write_SeaState()
         if self.fst_vt['Fst']['CompSub'] == 1:
             self.write_SubDyn()
         if self.fst_vt['Fst']['CompMooring'] == 1:
@@ -211,6 +213,7 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompInflow'], 'CompInflow', '- Compute inflow wind velocities (switch) {0=still air; 1=InflowWind; 2=external from OpenFOAM}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompAero'], 'CompAero', '- Compute aerodynamic loads (switch) {0=None; 1=AeroDyn v14; 2=AeroDyn v15}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompServo'], 'CompServo', '- Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompSeaState'], 'CompSeaState', '- Compute sea state information (switch) {0=None; 1=SeaState}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompHydro'], 'CompHydro', '- Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompSub'], 'CompSub', '- Compute sub-structural dynamics (switch) {0=None; 1=SubDyn; 2=External Platform MCKF}\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['Fst']['CompMooring'], 'CompMooring', '- Compute mooring system (switch) {0=None; 1=MAP++; 2=FEAMooring; 3=MoorDyn; 4=OrcaFlex}\n'))
@@ -234,6 +237,7 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['InflowFile']+'"', 'InflowFile', '- Name of file containing inflow wind input parameters (quoted string)\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['AeroFile']+'"', 'AeroFile', '- Name of file containing aerodynamic input parameters (quoted string)\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['ServoFile']+'"', 'ServoFile', '- Name of file containing control and electrical-drive input parameters (quoted string)\n'))
+        f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['SeaState']+'"', 'SeaState', '- Name of file containing sea state input parameters (quoted string)\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['HydroFile']+'"', 'HydroFile', '- Name of file containing hydrodynamic input parameters (quoted string)\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['SubFile']+'"', 'SubFile', '- Name of file containing sub-structural input parameters (quoted string)\n'))
         f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['Fst']['MooringFile']+'"', 'MooringFile', '- Name of file containing mooring system input parameters (quoted string)\n'))
@@ -1362,60 +1366,11 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WtrDens'], 'WtrDens', '- Water density (kg/m^3)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WtrDpth'], 'WtrDpth', '- Water depth (meters)\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['MSL2SWL'], 'MSL2SWL', '- Offset between still-water level and mean sea level (meters) [positive upward; unused when WaveMod = 6; must be zero if PotMod=1 or 2]\n'))
-        f.write('---------------------- WAVES ---------------------------------------------------\n')
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveMod'], 'WaveMod', '- Incident wave kinematics model {0: none=still water, 1: regular (periodic), 1P#: regular with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: White noise spectrum (irregular), 4: user-defined spectrum from routine UserWaveSpctrm (irregular), 5: Externally generated wave-elevation time series, 6: Externally generated full wave-kinematics time series [option 6 is invalid for PotMod/=0]} (switch)\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveStMod'], 'WaveStMod', '- Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when PotMod/=0]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveTMax'], 'WaveTMax', '- Analysis time for incident wave calculations (sec) [unused when WaveMod=0; determines WaveDOmega=2Pi/WaveTMax in the IFFT]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDT'], 'WaveDT', '- Time step for incident wave calculations     (sec) [unused when WaveMod=0; 0.1<=WaveDT<=1.0 recommended; determines WaveOmegaMax=Pi/WaveDT in the IFFT]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveHs'], 'WaveHs', '- Significant wave height of incident waves (meters) [used only when WaveMod=1, 2, or 3]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveTp'], 'WaveTp', '- Peak-spectral period of incident waves       (sec) [used only when WaveMod=1 or 2]\n'))
-        if isinstance(self.fst_vt['HydroDyn']['WavePkShp'], float):
-            if self.fst_vt['HydroDyn']['WavePkShp'] == 0.:
-                WavePkShp = 'Default'
-            else: 
-                WavePkShp = self.fst_vt['HydroDyn']['WavePkShp']
-        else:
-            WavePkShp = self.fst_vt['HydroDyn']['WavePkShp']
-        f.write('{:<22} {:<11} {:}'.format(WavePkShp, 'WavePkShp', '- Peak-shape parameter of incident wave spectrum (-) or DEFAULT (string) [used only when WaveMod=2; use 1.0 for Pierson-Moskowitz]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvLowCOff'], 'WvLowCOff', '- Low  cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvHiCOff'], 'WvHiCOff', '- High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDir'], 'WaveDir', '- Incident wave propagation heading direction                         (degrees) [unused when WaveMod=0 or 6]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDirMod'], 'WaveDirMod', '- Directional spreading function {0: none, 1: COS2S}                  (-)       [only used when WaveMod=2,3, or 4]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDirSpread'], 'WaveDirSpread', '- Wave direction spreading coefficient ( > 0 )                        (-)       [only used when WaveMod=2,3, or 4 and WaveDirMod=1]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveNDir'], 'WaveNDir', '- Number of wave directions                                           (-)       [only used when WaveMod=2,3, or 4 and WaveDirMod=1; odd number only]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDirRange'], 'WaveDirRange', '- Range of wave directions (full range: WaveDir +/- 1/2*WaveDirRange) (degrees) [only used when WaveMod=2,3,or 4 and WaveDirMod=1]\n'))
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed1'], 'WaveSeed(1)', '- First  random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
-        
-        try:
-            seed2 = int(self.fst_vt['HydroDyn']['WaveSeed2'])
-            f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
-        except ValueError:
-            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6] for intrinsic pRNG, or an alternative pRNG: "RanLux"\n'))
-            
-        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveNDAmp'], 'WaveNDAmp', '- Flag for normally distributed amplitudes                            (flag)    [only used when WaveMod=2, 3, or 4]\n'))
-        f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['HydroDyn']['WvKinFile']+'"', 'WvKinFile', '- Root name of externally generated wave data file(s)        (quoted string)    [used only when WaveMod=5 or 6]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NWaveElev'], 'NWaveElev', '- Number of points where the incident wave elevations can be computed (-)       [maximum of 9 output locations]\n'))
-        f.write('{:<22} {:<11} {:}'.format(", ".join(self.fst_vt['HydroDyn']['WaveElevxi']), 'WaveElevxi', '- List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
-        f.write('{:<22} {:<11} {:}'.format(", ".join(self.fst_vt['HydroDyn']['WaveElevyi']), 'WaveElevyi', '- List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
-        f.write('---------------------- 2ND-ORDER WAVES ----------------------------------------- [unused with WaveMod=0 or 6]\n')
-        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvDiffQTF'], 'WvDiffQTF', '- Full difference-frequency 2nd-order wave kinematics (flag)\n'))
-        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvSumQTF'], 'WvSumQTF', '- Full summation-frequency  2nd-order wave kinematics (flag)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvLowCOffD'], 'WvLowCOffD', '- Low  frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvHiCOffD'], 'WvHiCOffD', '- High frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvLowCOffS'], 'WvLowCOffS', '- Low  frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WvHiCOffS'], 'WvHiCOffS', '- High frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]\n'))
-        f.write('---------------------- CURRENT ------------------------------------------------- [unused with WaveMod=6]\n')
-        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrMod'], 'CurrMod', '- Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrSSV0'], 'CurrSSV0', '- Sub-surface current velocity at still water level  (m/s) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrSSDir'], 'CurrSSDir', '- Sub-surface current heading direction (degrees) or DEFAULT (string) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrNSRef'], 'CurrNSRef', '- Near-surface current reference depth            (meters) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrNSV0'], 'CurrNSV0', '- Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrNSDir'], 'CurrNSDir', '- Near-surface current heading direction         (degrees) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrDIV'], 'CurrDIV', '- Depth-independent current velocity                 (m/s) [used only when CurrMod=1]\n'))
-        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['CurrDIDir'], 'CurrDIDir', '- Depth-independent current heading direction    (degrees) [used only when CurrMod=1]\n'))
         f.write('---------------------- FLOATING PLATFORM --------------------------------------- [unused with WaveMod=6]\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['PotMod'], 'PotMod', '- Potential-flow model {0: none=no potential flow, 1: frequency-to-time-domain transforms based on WAMIT output, 2: fluid-impulse theory (FIT)} (switch)\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['ExctnMod'], 'ExctnMod', '- Wave Excitation model {0: None, 1: DFT, 2: state-space} (switch) [only used when PotMod=1; STATE-SPACE REQUIRES *.ssexctn INPUT FILE]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['ExctnDisp'], 'ExctnDisp','- Method of computing Wave Excitation {0: use undisplaced position, 1: use displaced position, 2: use low-pass filtered displaced position) [only used when PotMod=1 and ExctnMod>0 and SeaState\'s WaveMod>0]} (switch)\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['ExctnCutOff'], 'ExctnCutOff','- Method of computing Wave Excitation {0: use undisplaced position, 1: use displaced position, 2: use low-pass filtered displaced position) [only used when PotMod=1 and ExctnMod>0 and SeaState\'s WaveMod>0]} (switch)\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['RdtnMod'], 'RdtnMod', '- Radiation memory-effect model {0: no memory-effect calculation, 1: convolution, 2: state-space} (switch) [only used when PotMod=1; STATE-SPACE REQUIRES *.ss INPUT FILE]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['RdtnTMax'], 'RdtnTMax', '- Analysis time for wave radiation kernel calculations (sec) [only used when PotMod=1; determines RdtnDOmega=Pi/RdtnTMax in the cosine transform; MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]\n'))
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['RdtnDT'], 'RdtnDT', '- Time step for wave radiation kernel calculations (sec) [only used when PotMod=1; DT<=RdtnDT<=0.1 recommended; determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]\n'))
@@ -1437,7 +1392,7 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(self.fst_vt['HydroDyn']['SumQTF'], 'SumQTF', "- Full summation -frequency 2nd-order forces computed with full QTF          {0: None; [10, 11, or 12]: WAMIT file to use}\n"))
         f.write('---------------------- PLATFORM ADDITIONAL STIFFNESS AND DAMPING  --------------\n')
         for j in range(6):
-            ln = '{:14}   '.format(self.fst_vt['HydroDyn']['AddF0'][j][0])
+            ln = '{:14}   '.format(self.fst_vt['HydroDyn']['AddF0'][j])     # TODO: this won't work with some NBodyMods
             if j == 0:
                 ln = ln + 'AddF0    - Additional preload (N, N-m) [If NBodyMod=1, one size 6*NBody x 1 vector; if NBodyMod>1, NBody size 6 x 1 vectors]\n'
             else:
@@ -1474,15 +1429,22 @@ class InputWriter_OpenFAST(object):
                 ln = ln  + "\n"
             f.write(ln)
         f.write('---------------------- AXIAL COEFFICIENTS --------------------------------------\n')
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['WaveDisp'], 'WaveDisp', '- Method of computing Wave Kinematics {0- use undisplaced position, 1- use displaced position) } (switch)\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['AMMod'], 'AMMod', '\n'))
+        
+        f.write('---------------------- AXIAL COEFFICIENTS --------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NAxCoef'], 'NAxCoef', '- Number of axial coefficients (-)\n'))
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['AxCoefID', 'AxCd', 'AxCa', 'AxCp']])+'\n')
-        f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)']*4])+'\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['AxCoefID', 'AxCd', 'AxCa', 'AxCp', 'AxFDMod', 'AxVnCOff', 'AxFDLoFSc']])+'\n')
+        f.write(" ".join(['{:^11s}'.format(i) for i in ['(-)']*7])+'\n')
         for i in range(self.fst_vt['HydroDyn']['NAxCoef']):
             ln = []
             ln.append('{:^11d}'.format(self.fst_vt['HydroDyn']['AxCoefID'][i]))
             ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxCd'][i]))
             ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxCa'][i]))
             ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxCp'][i]))
+            ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxFDMod'][i]))
+            ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxVnCOff'][i]))
+            ln.append('{:^11}'.format(self.fst_vt['HydroDyn']['AxFDLoFSc'][i]))
             f.write(" ".join(ln) + '\n')
         f.write('---------------------- MEMBER JOINTS -------------------------------------------\n')
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['HydroDyn']['NJoints'], 'NJoints', '- Number of joints (-)   [must be exactly 0 or at least 2]\n'))
@@ -1641,6 +1603,110 @@ class InputWriter_OpenFAST(object):
         
         f.close()
 
+    def write_SeaState(self):
+
+        # Generate HydroDyn v2.03 input file
+        self.fst_vt['Fst']['SeaState'] = self.FAST_namingOut + '_SeaState.dat'
+        hd_file = os.path.join(self.FAST_runDirectory, self.fst_vt['Fst']['SeaState'])
+        f = open(hd_file, 'w')
+
+        f.write('------- SeaState v1.00.* Input File --------------------------------------------\n')
+        f.write('Generated with AeroElasticSE FAST driver\n')
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['Echo'], 'Echo', '- Echo the input file data (flag)\n'))
+
+        f.write('---------------------- ENVIRONMENTAL CONDITIONS --------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WtrDens'],'WtrDens', '- Water density (kg/m^3)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WtrDpth'],'WtrDpth', '- Water depth (meters)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['MSL2SWL'],'MSL2SWL', '- Offset between still-water level and mean sea level (meters) [positive upward; unused when WaveMod = 6; must be zero if PotMod=1 or 2]\n'))
+
+
+        f.write('---------------------- SPATIAL DISCRETIZATION ---------------------------------------------------\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['X_HalfWidth'], 'X_HalfWidth', '– Half-width of the domain in the X direction (m) [>0, NOTE: X[nX] = nX*dX, where nX = {-NX+1,-NX+2,…,NX-1} and dX = X_HalfWidth/(NX-1)]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['Y_HalfWidth'], 'Y_HalfWidth', '– Half-width of the domain in the Y direction (m) [>0, NOTE: Y[nY] = nY*dY, where nY = {-NY+1,-NY+2,…,NY-1} and dY = Y_HalfWidth/(NY-1)]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['Z_Depth'], 'Z_Depth', '– Depth of the domain the Z direction (m) relative to SWL [0 < Z_Depth <= WtrDpth+MSL2SWL; "default": Z_Depth = WtrDpth+MSL2SWL; Z[nZ] = ( COS( nZ*dthetaZ ) – 1 )*Z_Depth, where nZ = {0,1,…NZ-1} and dthetaZ = pi/( 2*(NZ-1) )]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NX'], 'NX', '– Number of nodes in half of the X-direction domain (-) [>=2]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NY'], 'NY', '– Number of nodes in half of the Y-direction domain (-) [>=2]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NZ'], 'NZ', '– Number of nodes in the Z direction (-) [>=2]\n'))
+
+        f.write('---------------------- WAVES ---------------------------------------------------\n')
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveMod'], 'WaveMod', '- Incident wave kinematics model {0: none=still water, 1: regular (periodic), 1P#: regular with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: White noise spectrum (irregular), 4: user-defined spectrum from routine UserWaveSpctrm (irregular), 5: Externally generated wave-elevation time series, 6: Externally generated full wave-kinematics time series [option 6 is invalid for PotMod/=0]} (switch)\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveStMod'], 'WaveStMod', '- Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when PotMod/=0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveTMax'], 'WaveTMax', '- Analysis time for incident wave calculations (sec) [unused when WaveMod=0; determines WaveDOmega=2Pi/WaveTMax in the IFFT]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveDT'], 'WaveDT', '- Time step for incident wave calculations     (sec) [unused when WaveMod=0; 0.1<=WaveDT<=1.0 recommended; determines WaveOmegaMax=Pi/WaveDT in the IFFT]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveHs'], 'WaveHs', '- Significant wave height of incident waves (meters) [used only when WaveMod=1, 2, or 3]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveTp'], 'WaveTp', '- Peak-spectral period of incident waves       (sec) [used only when WaveMod=1 or 2]\n'))
+        if isinstance(self.fst_vt['SeaState']['WavePkShp'], float):
+            if self.fst_vt['SeaState']['WavePkShp'] == 0.:
+                WavePkShp = 'Default'
+            else: 
+                WavePkShp = self.fst_vt['SeaState']['WavePkShp']
+        else:
+            WavePkShp = self.fst_vt['SeaState']['WavePkShp']
+        f.write('{:<22} {:<11} {:}'.format(WavePkShp, 'WavePkShp', '- Peak-shape parameter of incident wave spectrum (-) or DEFAULT (string) [used only when WaveMod=2; use 1.0 for Pierson-Moskowitz]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvLowCOff'], 'WvLowCOff', '- Low  cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvHiCOff'], 'WvHiCOff', '- High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [unused when WaveMod=0, 1, or 6]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveDir'], 'WaveDir', '- Incident wave propagation heading direction                         (degrees) [unused when WaveMod=0 or 6]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveDirMod'], 'WaveDirMod', '- Directional spreading function {0: none, 1: COS2S}                  (-)       [only used when WaveMod=2,3, or 4]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveDirSpread'], 'WaveDirSpread', '- Wave direction spreading coefficient ( > 0 )                        (-)       [only used when WaveMod=2,3, or 4 and WaveDirMod=1]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveNDir'], 'WaveNDir', '- Number of wave directions                                           (-)       [only used when WaveMod=2,3, or 4 and WaveDirMod=1; odd number only]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveDirRange'], 'WaveDirRange', '- Range of wave directions (full range: WaveDir +/- 1/2*WaveDirRange) (degrees) [only used when WaveMod=2,3,or 4 and WaveDirMod=1]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveSeed1'], 'WaveSeed(1)', '- First  random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
+        
+        try:
+            seed2 = int(self.fst_vt['SeaState']['WaveSeed2'])
+            f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6]\n'))
+        except ValueError:
+            f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveSeed2'], 'WaveSeed(2)', '- Second random seed of incident waves [-2147483648 to 2147483647]    (-)       [unused when WaveMod=0, 5, or 6] for intrinsic pRNG, or an alternative pRNG: "RanLux"\n'))
+            
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WaveNDAmp'], 'WaveNDAmp', '- Flag for normally distributed amplitudes                            (flag)    [only used when WaveMod=2, 3, or 4]\n'))
+        f.write('{:<22} {:<11} {:}'.format('"'+self.fst_vt['SeaState']['WvKinFile']+'"', 'WvKinFile', '- Root name of externally generated wave data file(s)        (quoted string)    [used only when WaveMod=5 or 6]\n'))
+        f.write('---------------------- 2ND-ORDER WAVES ----------------------------------------- [unused with WaveMod=0 or 6]\n')
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvDiffQTF'], 'WvDiffQTF', '- Full difference-frequency 2nd-order wave kinematics (flag)\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvSumQTF'], 'WvSumQTF', '- Full summation-frequency  2nd-order wave kinematics (flag)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvLowCOffD'], 'WvLowCOffD', '- Low  frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvHiCOffD'], 'WvHiCOffD', '- High frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvLowCOffS'], 'WvLowCOffS', '- Low  frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['WvHiCOffS'], 'WvHiCOffS', '- High frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]\n'))
+        f.write('---------------------- CONSTRAINED WAVE ---------------------------------------- [Only used when WaveMod=2]\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['ConstWaveMod'], 'ConstWaveMod', '- Contrained wave model {0: no constrained wave, 1: Specified crest elevation of 0.5*CrestHmax, 2: Specified crest height of CrestHmax}\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CrestHmax'], 'CrestHmax', '- Twice the crest elevation if ConstWaveMod=1 or the crest height if ConstWaveMod=2. (m) [need CrestHmax > WaveHs; unused when ConstWaveMod=0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CrestTime'], 'CrestTime', '- Time of the wave crest.         (sec)   [unused when ConstWaveMod=0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CrestXi'], 'CrestXi', '- X-position of the wave crest.   (m)     [unused when ConstWaveMod=0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CrestYi'], 'CrestYi', '- Y-position of the wave crest.   (m)     [unused when ConstWaveMod=0]\n'))
+        f.write('---------------------- CURRENT ------------------------------------------------- [unused with WaveMod=6]\n')
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrMod'], 'CurrMod', '- Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrSSV0'], 'CurrSSV0', '- Sub-surface current velocity at still water level  (m/s) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrSSDir'], 'CurrSSDir', '- Sub-surface current heading direction (degrees) or DEFAULT (string) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrNSRef'], 'CurrNSRef', '- Near-surface current reference depth            (meters) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrNSV0'], 'CurrNSV0', '- Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrNSDir'], 'CurrNSDir', '- Near-surface current heading direction         (degrees) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrDIV'], 'CurrDIV', '- Depth-independent current velocity                 (m/s) [used only when CurrMod=1]\n'))
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['CurrDIDir'], 'CurrDIDir', '- Depth-independent current heading direction    (degrees) [used only when CurrMod=1]\n'))
+        f.write('---------------------- MacCamy-Fuchs Diffraction Model ------------------------- [unused with WaveMod=6]\n')
+        f.write('{:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['MCFD'],'MCFD', '- Diameter of members for which the MacCamy-Fuchs model is to be enable. [used only when MCFD > 0]\n'))
+        f.write('---------------------- OUTPUT --------------------------------------------------\n')
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['SeaStSum'], 'SeaStSum', '- Output a summary file [flag]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['OutSwtch'], 'OutSwtch','- Output requested channels to: [1=SeaState.out, 2=GlueCode.out, 3=both files]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['OutFmt'], 'OutFmt','- Output format for numerical results (quoted string) [not checked for validity!]\n'))
+        f.write('{!s:<22} {:<11} {:}'.format(self.fst_vt['SeaState']['OutSFmt'], 'OutSFmt','- Output format for header strings (quoted string) [not checked for validity!]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NWaveElev'], 'NWaveElev','- Number of points where the incident wave elevations can be computed (-)       [maximum of 9 output locations]\n'))
+        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveElevxi']]), 'WaveElevxi', '- List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveElevyi']]), 'WaveElevyi', '- List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
+        f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NWaveKin'], 'NWaveKin','- Number of points where the incident wave elevations can be computed (-)       [maximum of 9 output locations]\n'))
+        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinxi']]), 'WaveKinxi', '- List of xi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinyi']]), 'WaveKinyi', '- List of yi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinzi']]), 'WaveKinzi', '- List of zi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+
+        f.write('---------------------- OUTPUT CHANNELS -----------------------------------------\n')
+        outlist = self.get_outlist(self.fst_vt['outlist'], ['SeaState'])
+        for channel_list in outlist:
+            for i in range(len(channel_list)):
+                f.write('"' + channel_list[i] + '"\n')
+            
+        f.write('END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)\n')
+        
+        f.close()
+        
     def write_SubDyn(self):
         # Generate SubDyn v1.1 input file
         self.fst_vt['Fst']['SubFile'] = self.FAST_namingOut + '_SubDyn.dat'
