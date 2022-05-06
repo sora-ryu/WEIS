@@ -3098,47 +3098,47 @@ InflowWind['WindMeas4']       = False     # (m/s); Wind measurement at sensor 4;
 InflowWind['WindMeas5']       = False     # (m/s); Wind measurement at sensor 5; Defined by sensor
 
 
-""" WAMIT """
-WAMIT = {}
+# """ WAMIT """
+# WAMIT = {}
 
-# WAMIT Body Forces
-WAMIT['Wave1El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave2El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave3El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave4El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave5El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave6El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave7El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave8El2']             = False     # (m); 2nd order wave elevation correction; 
-WAMIT['Wave9El2']             = False     # (m); 2nd order wave elevation correction; 
+# # WAMIT Body Forces
+# WAMIT['Wave1El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave2El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave3El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave4El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave5El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave6El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave7El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave8El2']             = False     # (m); 2nd order wave elevation correction; 
+# WAMIT['Wave9El2']             = False     # (m); 2nd order wave elevation correction; 
 
-# WAMIT second order Body Forces
-WAMIT['WavesF2xi']            = False     # (N); ; 
-WAMIT['WavesF2yi']            = False     # (N); ; 
-WAMIT['WavesF2zi']            = False     # (N); ; 
-WAMIT['WavesM2xi']            = False     # (N m); ; 
-WAMIT['WavesM2yi']            = False     # (N m); ; 
-WAMIT['WavesM2zi']            = False     # (N m); ; 
+# # WAMIT second order Body Forces
+# WAMIT['WavesF2xi']            = False     # (N); ; 
+# WAMIT['WavesF2yi']            = False     # (N); ; 
+# WAMIT['WavesF2zi']            = False     # (N); ; 
+# WAMIT['WavesM2xi']            = False     # (N m); ; 
+# WAMIT['WavesM2yi']            = False     # (N m); ; 
+# WAMIT['WavesM2zi']            = False     # (N m); ; 
 
-# WAMIT Body Forces
-WAMIT['WavesFxi']             = False     # (N); ; 
-WAMIT['WavesFyi']             = False     # (N); ; 
-WAMIT['WavesFzi']             = False     # (N); ; 
-WAMIT['WavesMxi']             = False     # (N m); ; 
-WAMIT['WavesMyi']             = False     # (N m); ; 
-WAMIT['WavesMzi']             = False     # (N m); ; 
-WAMIT['HdrStcFxi']            = False     # (N); ; 
-WAMIT['HdrStcFyi']            = False     # (N); ; 
-WAMIT['HdrStcFzi']            = False     # (N); ; 
-WAMIT['HdrStcMxi']            = False     # (N m); ; 
-WAMIT['HdrStcMyi']            = False     # (N m); ; 
-WAMIT['HdrStcMzi']            = False     # (N m); ; 
-WAMIT['RdtnFxi']              = False     # (N); ; 
-WAMIT['RdtnFyi']              = False     # (N); ; 
-WAMIT['RdtnFzi']              = False     # (N); ; 
-WAMIT['RdtnMxi']              = False     # (N m); ; 
-WAMIT['RdtnMyi']              = False     # (N m); ; 
-WAMIT['RdtnMzi']              = False     # (N m); ; 
+# # WAMIT Body Forces
+# WAMIT['WavesFxi']             = False     # (N); ; 
+# WAMIT['WavesFyi']             = False     # (N); ; 
+# WAMIT['WavesFzi']             = False     # (N); ; 
+# WAMIT['WavesMxi']             = False     # (N m); ; 
+# WAMIT['WavesMyi']             = False     # (N m); ; 
+# WAMIT['WavesMzi']             = False     # (N m); ; 
+# WAMIT['HdrStcFxi']            = False     # (N); ; 
+# WAMIT['HdrStcFyi']            = False     # (N); ; 
+# WAMIT['HdrStcFzi']            = False     # (N); ; 
+# WAMIT['HdrStcMxi']            = False     # (N m); ; 
+# WAMIT['HdrStcMyi']            = False     # (N m); ; 
+# WAMIT['HdrStcMzi']            = False     # (N m); ; 
+# WAMIT['RdtnFxi']              = False     # (N); ; 
+# WAMIT['RdtnFyi']              = False     # (N); ; 
+# WAMIT['RdtnFzi']              = False     # (N); ; 
+# WAMIT['RdtnMxi']              = False     # (N m); ; 
+# WAMIT['RdtnMyi']              = False     # (N m); ; 
+# WAMIT['RdtnMzi']              = False     # (N m); ; 
 
 """ HydroDyn """
 HydroDyn = {}
@@ -3160,15 +3160,15 @@ HydroDyn['HydroMyi']          = False     # (N m); ;
 HydroDyn['HydroMzi']          = False     # (N m); ; 
 
 # Wave Motions
-HydroDyn['Wave1Elev']         = False     # (m); ; 
-HydroDyn['Wave2Elev']         = False     # (m); ; 
-HydroDyn['Wave3Elev']         = False     # (m); ; 
-HydroDyn['Wave4Elev']         = False     # (m); ; 
-HydroDyn['Wave5Elev']         = False     # (m); ; 
-HydroDyn['Wave6Elev']         = False     # (m); ; 
-HydroDyn['Wave7Elev']         = False     # (m); ; 
-HydroDyn['Wave8Elev']         = False     # (m); ; 
-HydroDyn['Wave9Elev']         = False     # (m); ; 
+# HydroDyn['Wave1Elev']         = False     # (m); ; 
+# HydroDyn['Wave2Elev']         = False     # (m); ; 
+# HydroDyn['Wave3Elev']         = False     # (m); ; 
+# HydroDyn['Wave4Elev']         = False     # (m); ; 
+# HydroDyn['Wave5Elev']         = False     # (m); ; 
+# HydroDyn['Wave6Elev']         = False     # (m); ; 
+# HydroDyn['Wave7Elev']         = False     # (m); ; 
+# HydroDyn['Wave8Elev']         = False     # (m); ; 
+# HydroDyn['Wave9Elev']         = False     # (m); ; 
 
 # WRP Motions
 HydroDyn['WRPSurge']          = False     # (m); ; 
@@ -9516,6 +9516,104 @@ SubDyn['SSqmdd97']            = False     # (1/s^2); ;
 SubDyn['SSqmdd98']            = False     # (1/s^2); ; 
 SubDyn['SSqmdd99']            = False     # (1/s^2); ; 
 
+""" SeaState """
+SeaState = {}
+
+# Wave Elevations
+SeaState['Wave1Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave2Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave3Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave4Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave5Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave6Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave7Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave8Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave9Elev']         = False     # (m); Total (first-order plus second-order) wave elevation (global Z height) at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave1Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave2Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave3Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave4Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave5Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave6Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave7Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave8Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave9Elv1']         = False     # (m); First-order wave elevation (global Z height) at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave1Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave2Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave3Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave4Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave5Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave6Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave7Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave8Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['Wave9Elv2']         = False     # (m); Second-order wave elevation (global Z height) at the 9th user-requested location (location is specified in the global coordinate system); 
+
+# Wave Kinematics 
+SeaState['FVel1xi']           = False     # (m/s); fluid velocity along the global x-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel2xi']           = False     # (m/s); fluid velocity along the global x-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel3xi']           = False     # (m/s); fluid velocity along the global x-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel4xi']           = False     # (m/s); fluid velocity along the global x-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel5xi']           = False     # (m/s); fluid velocity along the global x-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel6xi']           = False     # (m/s); fluid velocity along the global x-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel7xi']           = False     # (m/s); fluid velocity along the global x-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel8xi']           = False     # (m/s); fluid velocity along the global x-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel9xi']           = False     # (m/s); fluid velocity along the global x-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel1yi']           = False     # (m/s); fluid velocity along the global y-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel2yi']           = False     # (m/s); fluid velocity along the global y-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel3yi']           = False     # (m/s); fluid velocity along the global y-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel4yi']           = False     # (m/s); fluid velocity along the global y-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel5yi']           = False     # (m/s); fluid velocity along the global y-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel6yi']           = False     # (m/s); fluid velocity along the global y-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel7yi']           = False     # (m/s); fluid velocity along the global y-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel8yi']           = False     # (m/s); fluid velocity along the global y-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel9yi']           = False     # (m/s); fluid velocity along the global y-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel1zi']           = False     # (m/s); fluid velocity along the global z-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel2zi']           = False     # (m/s); fluid velocity along the global z-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel3zi']           = False     # (m/s); fluid velocity along the global z-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel4zi']           = False     # (m/s); fluid velocity along the global z-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel5zi']           = False     # (m/s); fluid velocity along the global z-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel6zi']           = False     # (m/s); fluid velocity along the global z-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel7zi']           = False     # (m/s); fluid velocity along the global z-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel8zi']           = False     # (m/s); fluid velocity along the global z-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FVel9zi']           = False     # (m/s); fluid velocity along the global z-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc1xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc2xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc3xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc4xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc5xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc6xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc7xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc8xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc9xi']           = False     # (m/s^2); fluid acceleration along the global x-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc1yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc2yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc3yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc4yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc5yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc6yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc7yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc8yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc9yi']           = False     # (m/s^2); fluid acceleration along the global y-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc1zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc2zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc3zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc4zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc5zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc6zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc7zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc8zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FAcc9zi']           = False     # (m/s^2); fluid acceleration along the global z-direction at the 9th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP1']            = False     # (Pa); fluid dynamic pressure at the 1st user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP2']            = False     # (Pa); fluid dynamic pressure at the 2nd user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP3']            = False     # (Pa); fluid dynamic pressure at the 3rd user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP4']            = False     # (Pa); fluid dynamic pressure at the 4th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP5']            = False     # (Pa); fluid dynamic pressure at the 5th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP6']            = False     # (Pa); fluid dynamic pressure at the 6th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP7']            = False     # (Pa); fluid dynamic pressure at the 7th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP8']            = False     # (Pa); fluid dynamic pressure at the 8th user-requested location (location is specified in the global coordinate system); 
+SeaState['FDynP9']            = False     # (Pa); fluid dynamic pressure at the 9th user-requested location (location is specified in the global coordinate system); 
+
+
 """ MoorDyn """
 # THIS IS NOT A COMPLETE LIST!
 # the "flexible naming system" discussed on page 7-8 of the documentation is not included
@@ -9917,13 +10015,13 @@ FstOutput['BeamDyn']          = BeamDyn
 FstOutput['ServoDyn']         = ServoDyn
 FstOutput['AeroDyn']          = AeroDyn
 FstOutput['InflowWind']       = InflowWind
-FstOutput['WAMIT']            = WAMIT
+# FstOutput['WAMIT']            = WAMIT
 FstOutput['HydroDyn']         = HydroDyn
 FstOutput['Morison']          = Morison
 FstOutput['SubDyn']           = SubDyn
 FstOutput['BeamDyn']          = BeamDyn
 FstOutput['MoorDyn']          = MoorDyn
-FstOutput['SeaState']          = {}
+FstOutput['SeaState']         = SeaState
 
 """ Generated from FAST OutListParameters.xlsx files with AeroelasticSE/src/AeroelasticSE/Util/create_output_vars.py """
 
