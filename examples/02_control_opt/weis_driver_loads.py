@@ -7,7 +7,7 @@ import os, time, sys
 run_dir                 = os.path.dirname( os.path.realpath(__file__) )
 wisdem_examples         = os.path.join(os.path.dirname( os.path.dirname( os.path.dirname( os.path.realpath(__file__) ) ) ), "WISDEM", "examples")
 fname_wt_input          = run_dir + os.sep + 'IEA-15-240-RWT.yaml'
-fname_modeling_options  = run_dir + os.sep + 'modeling_options_loads.yaml'
+fname_modeling_options  = run_dir + os.sep + 'modeling_options_ELISA.yaml'
 fname_analysis_options  = run_dir + os.sep + 'analysis_options_loads.yaml'
 
 

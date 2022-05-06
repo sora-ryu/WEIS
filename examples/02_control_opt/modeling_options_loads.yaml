@@ -2,10 +2,11 @@ General:
     verbosity: False  # When set to True, the code prints to screen many infos
     openfast_configuration:
         OF_run_fst: IEA15
-        OF_run_dir: outputs/dlc14_waveaz
+        OF_run_dir: outputs/dlc61_ss
         save_timeseries: True
         save_iterations: True
         use_exe: True
+        FAST_exe: /Users/dzalkind/Tools/openfast-seastate/build/glue-codes/openfast/openfast
 
 WISDEM:
     RotorSE:
@@ -28,8 +29,8 @@ WISDEM:
 Level3: # Options for WEIS fidelity level 3 = nonlinear time domain
     flag: True
     from_openfast: True
-    openfast_file: IEA-15-240-RWT-UMaineSemi.fst
-    openfast_dir: examples/01_aeroelasticse/OpenFAST_models/IEA-15-240-RWT/IEA-15-240-RWT-UMaineSemi
+    openfast_file: ELISA.fst
+    openfast_dir: /Users/dzalkind/Projects/Esteyco/esteyco_models/v3XX/ELISA_Installed
     simulation:
         DT: 0.0125
         CompElast: 1
@@ -37,8 +38,8 @@ Level3: # Options for WEIS fidelity level 3 = nonlinear time domain
         CompAero: 2
         CompServo: 1
         CompHydro: 1
-        CompSub: 0
-        CompMooring: 3
+        CompSub: 1
+        CompMooring: 0
         CompIce: 0
         OutFileFmt: 3
         Gravity: 9.81
