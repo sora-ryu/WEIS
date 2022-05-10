@@ -3018,6 +3018,16 @@ properties:
                                 minItems: 1
                                 minimum: -180.0
                                 maximum: 180.0
+                        sea_level_offset:
+                            type: array
+                            description: Mean sea level offset 
+                            default: [0.]
+                            items:
+                                type: number
+                                unit: m
+                                minItems: 1
+                                minimum: -100.0
+                                maximum: 100.0
                         wave_gamma:
                             type: array
                             description: Peak-shape parameter of incident wave spectrum. If 0, the default from IEC61400-3 / HydroDyn is used. This array must currently have either length=1, i.e. one constant value, or the same length of the array wind_speed

@@ -1722,7 +1722,6 @@ class FASTLoadCases(ExplicitComponent):
         aero_mod = np.full(dlc_generator.n_cases, fill_value = fst_vt['AeroDyn15']['AFAeroMod'])
         wake_mod = np.full(dlc_generator.n_cases, fill_value = fst_vt['AeroDyn15']['WakeMod'])
 
-
         for i_case in range(dlc_generator.n_cases):
             if dlc_generator.cases[i_case].turbulent_wind:
                 # Assign values common to all DLCs
@@ -1803,7 +1802,7 @@ class FASTLoadCases(ExplicitComponent):
                 wake_mod[i_case]            = 0
 
             # Wave inputs to HydroDyn
-            WindHd[i_case] = dlc_generator.cases[i_case].wind_heading
+            WindHd[i_case] = dlc_generator.cases[i_case].wind_heading  
             WaveHs[i_case] = dlc_generator.cases[i_case].wave_height
             WaveTp[i_case] = dlc_generator.cases[i_case].wave_period
             WaveHd[i_case] = dlc_generator.cases[i_case].wave_heading
@@ -1816,7 +1815,13 @@ class FASTLoadCases(ExplicitComponent):
             mean_wind_speed[i_case] = dlc_generator.cases[i_case].URef
             yaw_misalignment[i_case] = dlc_generator.cases[i_case].yaw_misalign
 
+        # Set other OpenFAST inputs that don't need complicated logic
+        sea_level_offset = np.array([c.sea_level_offset for c in dlc_generator.cases])
 
+        # Constrained wave
+        constrained_wave = np.full(dlc_generator.n_cases, fill_value = 0)
+        constrained_wave[np.array([c.constrained_wave for c in dlc_generator.cases])] = 2
+        
         # Parameteric inputs
         case_inputs = {}
         # Main fst
@@ -1837,12 +1842,7 @@ class FASTLoadCases(ExplicitComponent):
         case_inputs[("ElastoDyn","Azimuth")] = {'vals':azimuth_init, 'group':1}
         # Yaw offset
         case_inputs[("ElastoDyn","NacYaw")] = {'vals':yaw_misalignment, 'group':1}
-        # Inputs to HydroDyn
-        case_inputs[("HydroDyn","WaveHs")] = {'vals':WaveHs, 'group':1}
-        case_inputs[("HydroDyn","WaveTp")] = {'vals':WaveTp, 'group':1}
-        case_inputs[("HydroDyn","WaveDir")] = {'vals':WaveHd, 'group':1}
-        case_inputs[("HydroDyn","WavePkShp")] = {'vals':WaveGamma, 'group':1}
-        case_inputs[("HydroDyn","WaveSeed1")] = {'vals':WaveSeed1, 'group':1}
+        
         # Inputs to ServoDyn (parking), PitManRat and BlPitchF are ServoDyn modeling_options
         case_inputs[("ServoDyn","TPitManS1")] = {'vals':shutdown_time, 'group':1}
         case_inputs[("ServoDyn","TPitManS2")] = {'vals':shutdown_time, 'group':1}
@@ -1851,6 +1851,21 @@ class FASTLoadCases(ExplicitComponent):
         # Inputs to AeroDyn (parking)
         case_inputs[("AeroDyn15","AFAeroMod")] = {'vals':aero_mod, 'group':1}
         case_inputs[("AeroDyn15","WakeMod")] = {'vals':wake_mod, 'group':1}
+
+        # Inputs to SeaState
+        case_inputs[("SeaState","WaveHs")] = {'vals':WaveHs, 'group':1}
+        case_inputs[("SeaState","WaveTp")] = {'vals':WaveTp, 'group':1}
+        case_inputs[("SeaState","WaveDir")] = {'vals':WaveHd, 'group':1}
+        case_inputs[("SeaState","WavePkShp")] = {'vals':WaveGamma, 'group':1}
+        case_inputs[("SeaState","ConstWaveMod")] = {'vals':constrained_wave, 'group':1}
+        case_inputs[("SeaState","CrestHmax")] = {'vals':1.86 * WaveHs, 'group':1}  # unused if ConstWaveMod=0
+        case_inputs[("SeaState","CrestTime")] = {'vals':(self.TMax + self.TStart)/2, 'group':1} # midpoint of analysis time
+
+
+        # Sea Level (set in a couple of places)
+        case_inputs[("Fst","MSL2SWL")] = {'vals':sea_level_offset, 'group':1}
+        case_inputs[("HydroDyn","MSL2SWL")] = {'vals':sea_level_offset, 'group':1}
+        case_inputs[("SeaState","MSL2SWL")] = {'vals':sea_level_offset, 'group':1}
 
         # DLC Label add these for the case matrix and delete from the case_list
         case_inputs[("DLC","Label")] = {'vals':dlc_label, 'group':1}

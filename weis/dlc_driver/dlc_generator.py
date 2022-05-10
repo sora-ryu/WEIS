@@ -14,6 +14,7 @@ class DLCInstance(object):
         self.wave_height = 0.0
         self.wave_period = 0.0
         self.wave_heading = 0.0
+        self.sea_level_offset = 0.0
         self.wave_gamma = 0.0
         self.probability = 0.0
         self.analysis_time = 600.
@@ -28,6 +29,7 @@ class DLCInstance(object):
         self.sigma1 = '' # Standard deviation of the wind
         self.RandSeed1 = 0
         self.wave_seed1 = 0
+        self.constrained_wave = False
         self.label = '' # For 1.1/Custom
         self.wind_file = ''
         self.PSF = 1.35 # Partial Safety Factor
@@ -40,6 +42,12 @@ class DLCInstance(object):
         for key in options['turbulent_wind'].keys():
             setattr(self, key, options['turbulent_wind'][key])
 
+class MetoceanCounters(object):
+    def __init__(self):
+        print('here')
+
+    def increment(self):
+        print('here')
 class DLCGenerator(object):
 
     def __init__(self, ws_cut_in=4.0, ws_cut_out=25.0, ws_rated=10.0, wind_speed_class = 'I',
@@ -167,6 +175,13 @@ class DLCGenerator(object):
             wave_heading = np.array([])
         return wave_heading
 
+    def get_sea_level_offset(self, options):
+        if len(options['wave_heading']) > 0:
+            sea_level_offset = np.array( [float(m) for m in options['sea_level_offset']] )
+        else:
+            sea_level_offset = np.array([])
+        return sea_level_offset
+
     def get_probabilities(self, options):
         if len(options['probabilities']) > 0:
             probabilities = np.array( [float(m) for m in options['probabilities']] )
@@ -183,6 +198,7 @@ class DLCGenerator(object):
         wave_Tp = self.get_wave_Tp(options)
         wave_gamma = self.get_wave_gamma(options)
         wave_heading = self.get_wave_heading(options)
+        sea_level_offset = self.get_sea_level_offset(options)
         probabilities = self.get_probabilities(options)
 
         if len(wind_seeds) > 1 and len(wind_seeds) != len(wind_speeds):
@@ -199,12 +215,14 @@ class DLCGenerator(object):
             raise Exception("The vector of wave_gamma must have either length=1 or the same length of wind speeds")
         if len(wave_heading) > 1 and len(wave_heading) != len(wind_speeds):
             raise Exception("The vector of wave heading must have either length=1 or the same length of wind speeds")
+        if len(sea_level_offset) > 1 and len(sea_level_offset) != len(wind_speeds):
+            raise Exception("The vector of sea level offsets must have either length=1 or the same length of wind speeds")
         if len(probabilities) > 1 and len(probabilities) != len(wind_speeds):
             raise Exception("The vector of probabilities must have either length=1 or the same length of wind speeds")
         if abs(sum(probabilities) - 1.) > 1.e-3:
             raise Exception("The vector of probabilities must sum to 1")
 
-        return wind_speeds, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, probabilities
+        return wind_speeds, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, sea_level_offset, probabilities
 
     def generate(self, label, options):
         known_dlcs = [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 5.1, 6.1, 6.3, 6.4, 6.5, 12.1]
@@ -290,7 +308,7 @@ class DLCGenerator(object):
 
     def generate_1p2(self, options):
         # Power production normal turbulence model - fatigue loads
-        wind_speeds, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, probabilities = self.get_metocean(options)
+        wind_speeds, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, _, probabilities = self.get_metocean(options)
         # If the user has not defined Hs and Tp, apply the metocean conditions for the fatigue analysis
         if len(wave_Hs)==0:
             wave_Hs = np.interp(wind_speeds, self.mo_ws, self.mo_Hs_F)
@@ -531,6 +549,7 @@ class DLCGenerator(object):
             idlc.wave_gamma = wave_gamma[i_WG]
             idlc.wave_heading = wave_heading[i_WaH]
             idlc.turbulent_wind = True
+            idlc.constrained_wave = True
             idlc.label = '1.6'
             if options['analysis_time'] > 0:
                 idlc.analysis_time = options['analysis_time']
@@ -615,7 +634,7 @@ class DLCGenerator(object):
     def generate_6p1(self, options):
         # Parked (standing still or idling) - extreme wind model 50-year return period - ultimate loads
         options['wind_speed'] = [50,50]  # set dummy, so wind seeds are correct
-        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, _ = self.get_metocean(options)
+        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, sea_level_offset, _ = self.get_metocean(options)
         # Set yaw_misalign, else default
         if 'yaw_misalign' in options:
             yaw_misalign = options['yaw_misalign']
@@ -635,6 +654,7 @@ class DLCGenerator(object):
         i_WiH=0
         i_WG=0
         i_WaH=0
+        i_SL=0
         for yaw_ms in yaw_misalign_deg:
             idlc = DLCInstance(options=options)
             if idlc.URef < 0:   # default is -1, this allows us to set custom V_50
@@ -643,10 +663,12 @@ class DLCGenerator(object):
             idlc.RandSeed1 = wind_seeds[i_WiSe]
             idlc.wave_seed1 = wave_seeds[i_WaSe]
             idlc.wind_heading = wind_heading[i_WiH]
+            idlc.sea_level_offset = sea_level_offset[i_SL]
             idlc.wave_height = wave_Hs[i_Hs]
             idlc.wave_period = wave_Tp[i_Tp]
             idlc.wave_gamma = wave_gamma[i_WG]
             idlc.wave_heading = wave_heading[i_WaH]
+            idlc.constrained_wave = True
             idlc.IEC_WindType = self.wind_speed_class_num + 'EWM50'
             idlc.turbulent_wind = True
             if idlc.turbine_status == 'operating':
@@ -671,11 +693,13 @@ class DLCGenerator(object):
                 i_WG+=1
             if len(wave_heading)>1:
                 i_WaH+=1
+            if len(sea_level_offset)>1:
+                i_SL+=1
 
     def generate_6p3(self, options):
         # Parked (standing still or idling) - extreme wind model 1-year return period - ultimate loads
         options['wind_speed'] = [50,50]  # set dummy, so wind seeds are correct
-        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, _ = self.get_metocean(options)
+        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, sea_level_offset, _ = self.get_metocean(options)
         # Set yaw_misalign, else default
         if 'yaw_misalign' in options:
             yaw_misalign = options['yaw_misalign']
@@ -695,6 +719,7 @@ class DLCGenerator(object):
         i_WiH=0
         i_WG=0
         i_WaH=0
+        i_SL=0
         for yaw_ms in yaw_misalign_deg:
             idlc = DLCInstance(options=options)
             if idlc.URef < 0:   # default is -1, this allows us to set custom V_50
@@ -707,6 +732,8 @@ class DLCGenerator(object):
             idlc.wave_period = wave_Tp[i_Tp]
             idlc.wave_gamma = wave_gamma[i_WG]
             idlc.wave_heading = wave_heading[i_WaH]
+            idlc.sea_level_offset = sea_level_offset[i_WiSe]
+            idlc.constrained_wave = True
             idlc.IEC_WindType = self.wind_speed_class_num + 'EWM1'
             idlc.turbulent_wind = True
             if idlc.turbine_status == 'operating':
@@ -731,6 +758,8 @@ class DLCGenerator(object):
                 i_WG+=1
             if len(wave_heading)>1:
                 i_WaH+=1
+            if len(sea_level_offset)>1:
+                i_SL+=1
 
     def generate_6p4(self, options):
         # Parked (standing still or idling) - normal turbulence model - fatigue loads
@@ -792,7 +821,7 @@ class DLCGenerator(object):
     def generate_6p5(self, options):
         # Parked (standing still or idling) - extreme wind model 500-year return period - ultimate loads
         options['wind_speed'] = [50,50]  # set dummy, so wind seeds are correct
-        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, _ = self.get_metocean(options)
+        _, wind_seeds, wave_seeds, wind_heading, wave_Hs, wave_Tp, wave_gamma, wave_heading, sea_level_offset, _ = self.get_metocean(options)
         # Set yaw_misalign, else default
         if 'yaw_misalign' in options:
             yaw_misalign = options['yaw_misalign']
@@ -812,6 +841,7 @@ class DLCGenerator(object):
         i_WiH=0
         i_WG=0
         i_WaH=0
+        i_SL=0
         for yaw_ms in yaw_misalign_deg:
             idlc = DLCInstance(options=options)
             if idlc.URef < 0:   # default is -1, this allows us to set custom V_50
@@ -824,6 +854,8 @@ class DLCGenerator(object):
             idlc.wave_period = wave_Tp[i_Tp]
             idlc.wave_gamma = wave_gamma[i_WG]
             idlc.wave_heading = wave_heading[i_WaH]
+            idlc.sea_level_offset = sea_level_offset[i_WiSe]
+            idlc.constrained_wave = True
             idlc.IEC_WindType = self.wind_speed_class_num + 'EWM1'
             idlc.turbulent_wind = True
             if idlc.turbine_status == 'operating':
@@ -848,6 +880,8 @@ class DLCGenerator(object):
                 i_WG+=1
             if len(wave_heading)>1:
                 i_WaH+=1
+            if len(sea_level_offset)>1:
+                i_SL+=1
     
     def generate_12p1(self, options):
         # Pass through uniform wind input
