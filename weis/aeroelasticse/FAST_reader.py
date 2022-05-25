@@ -2129,14 +2129,14 @@ class InputReader_OpenFAST(object):
         self.fst_vt['SubDyn']['NMOutputs']     = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['MemberID_out']  = [None]*self.fst_vt['SubDyn']['NMOutputs']
         self.fst_vt['SubDyn']['NOutCnt']       = [None]*self.fst_vt['SubDyn']['NMOutputs']
-        self.fst_vt['SubDyn']['NodeCnt']       = [None]*self.fst_vt['SubDyn']['NMOutputs']
+        self.fst_vt['SubDyn']['NodeCnt']       = [[None]]*self.fst_vt['SubDyn']['NMOutputs']
         ln = f.readline().split()
         ln = f.readline().split()
         for i in range(self.fst_vt['SubDyn']['NMOutputs']):
             ln = f.readline().split()
             self.fst_vt['SubDyn']['MemberID_out'][i] = int(ln[0])
             self.fst_vt['SubDyn']['NOutCnt'][i]      = int(ln[1])
-            self.fst_vt['SubDyn']['NodeCnt'][i]      = int(ln[2])
+            self.fst_vt['SubDyn']['NodeCnt'][i]      = [int(node) for node in ln[2:]]
         f.readline()
         # SSOutList
         data = f.readline()

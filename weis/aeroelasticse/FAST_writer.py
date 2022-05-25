@@ -1914,7 +1914,7 @@ class InputWriter_OpenFAST(object):
             ln = []
             ln.append('{:^11d}'.format(self.fst_vt['SubDyn']['MemberID_out'][i]))
             ln.append('{:^11d}'.format(self.fst_vt['SubDyn']['NOutCnt'][i]))
-            ln.append('{:^11d}'.format(self.fst_vt['SubDyn']['NodeCnt'][i]))
+            ln.append(" ".join(['{:^11d}'.format(node) for node in self.fst_vt['SubDyn']['NodeCnt'][i]]))
             f.write(" ".join(ln) + '\n')
         f.write('------------------------- SDOutList: The next line(s) contains a list of output parameters that will be output in <rootname>.SD.out or <rootname>.out. ------\n')
         outlist = self.get_outlist(self.fst_vt['outlist'], ['SubDyn'])
