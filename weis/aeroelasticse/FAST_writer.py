@@ -1696,9 +1696,15 @@ class InputWriter_OpenFAST(object):
         f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveElevxi']]), 'WaveElevxi', '- List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
         f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveElevyi']]), 'WaveElevyi', '- List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]\n'))
         f.write('{:<22d} {:<11} {:}'.format(self.fst_vt['SeaState']['NWaveKin'], 'NWaveKin','- Number of points where the incident wave elevations can be computed (-)       [maximum of 9 output locations]\n'))
-        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinxi']]), 'WaveKinxi', '- List of xi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
-        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinyi']]), 'WaveKinyi', '- List of yi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
-        f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinzi']]), 'WaveKinzi', '- List of zi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+        
+        if self.fst_vt['SeaState']['NWaveKin'] > 0 :
+            f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinxi']]), 'WaveKinxi', '- List of xi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+            f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinyi']]), 'WaveKinyi', '- List of yi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+            f.write('{:<22} {:<11} {:}'.format(", ".join([f'{val:4.2f}' for val in self.fst_vt['SeaState']['WaveKinzi']]), 'WaveKinzi', '- List of zi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+        else:
+            f.write('{:<11} {:}'.format('WaveKinxi', '- List of xi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+            f.write('{:<11} {:}'.format('WaveKinyi', '- List of yi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
+            f.write('{:<11} {:}'.format('WaveKinzi', '- List of zi-coordinates for points where the wave kinematics can be output (meters) [NWaveKin points, separated by commas or white space; usused if NWaveKin = 0]\n'))
 
         f.write('---------------------- OUTPUT CHANNELS -----------------------------------------\n')
         outlist = self.get_outlist(self.fst_vt['outlist'], ['SeaState'])
