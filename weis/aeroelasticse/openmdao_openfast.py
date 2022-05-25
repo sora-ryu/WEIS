@@ -1867,8 +1867,6 @@ class FASTLoadCases(ExplicitComponent):
         case_inputs[("SeaState","CrestHmax")] = {'vals':1.86 * WaveHs, 'group':1}  # unused if ConstWaveMod=0
         case_inputs[("SeaState","CrestTime")] = {'vals':(self.TMax + self.TStart)/2, 'group':1} # midpoint of analysis time
         case_inputs[("SeaState","CurrMod")] = {'vals':CurrMod, 'group':1} 
-        case_inputs[("SeaState","CurrSSV0")] = {'vals':0.0*CurrMod, 'group':1}     # all current velocities equal
-        case_inputs[("SeaState","CurrNSV0")] = {'vals':0.0*CurrMod, 'group':1} 
         case_inputs[("SeaState","CurrDIV")] = {'vals':CurrDIV, 'group':1} 
         case_inputs[("SeaState","CurrDIDir")] = {'vals':WaveHd, 'group':1}    # both current directions aligned with wave direction 
         case_inputs[("SeaState","CurrNSDir")] = {'vals':WaveHd, 'group':1} 
