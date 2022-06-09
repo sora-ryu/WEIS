@@ -3,6 +3,7 @@ import numpy as np
 from functools import reduce
 import operator
 from weis.aeroelasticse.FAST_vars_out import FstOutput
+import re
 
 try:
     from ROSCO_toolbox import utilities as ROSCO_utilities
@@ -369,17 +370,17 @@ class InputReader_OpenFAST(object):
         self.fst_vt['ElastoDyn']['DecFact']  = int(f.readline().split()[0])
         self.fst_vt['ElastoDyn']['NTwGages'] = int(f.readline().split()[0])
         if self.fst_vt['ElastoDyn']['NTwGages'] != 0: #loop over elements if there are gauges to be added, otherwise assign directly
-            self.fst_vt['ElastoDyn']['TwrGagNd'] = f.readline().strip().split()[:self.fst_vt['ElastoDyn']['NTwGages']]
-            for i, bldgag in enumerate(self.fst_vt['ElastoDyn']['TwrGagNd']):
-                self.fst_vt['ElastoDyn']['TwrGagNd'][i] = int(bldgag.strip(','))
+            self.fst_vt['ElastoDyn']['TwrGagNd'] = re.split(',| ',f.readline().strip())[:self.fst_vt['ElastoDyn']['NTwGages']]
+            for i, gag in enumerate(self.fst_vt['ElastoDyn']['TwrGagNd']):
+                self.fst_vt['ElastoDyn']['TwrGagNd'][i] = int(gag.strip())
         else:
             self.fst_vt['ElastoDyn']['TwrGagNd'] = 0
             f.readline()
         self.fst_vt['ElastoDyn']['NBlGages'] = int(f.readline().split()[0])
         if self.fst_vt['ElastoDyn']['NBlGages'] != 0:
-            self.fst_vt['ElastoDyn']['BldGagNd'] = f.readline().strip().split()[:self.fst_vt['ElastoDyn']['NBlGages']]
-            for i, bldgag in enumerate(self.fst_vt['ElastoDyn']['BldGagNd']):
-                self.fst_vt['ElastoDyn']['BldGagNd'][i] = int(bldgag.strip(','))
+            self.fst_vt['ElastoDyn']['BldGagNd'] = re.split(',| ',f.readline().strip())[:self.fst_vt['ElastoDyn']['NBlGages']]
+            for i, gag in enumerate(self.fst_vt['ElastoDyn']['BldGagNd']):
+                self.fst_vt['ElastoDyn']['BldGagNd'][i] = int(gag.strip())
         else:
             self.fst_vt['ElastoDyn']['BldGagNd'] = 0
             f.readline()
@@ -1865,7 +1866,7 @@ class InputReader_OpenFAST(object):
         data = f.readline()
         while data.split()[0] != 'END':
             channels = data.split('"')
-            channel_list = channels[1].split(',')
+            channel_list = channels[0].strip(',').strip()
             self.set_outlist(self.fst_vt['outlist']['SeaState'], channel_list)
             data = f.readline()
 
@@ -2117,6 +2118,8 @@ class InputReader_OpenFAST(object):
         f.readline()
         # OUTPUT
         self.fst_vt['SubDyn']['SumPrint'] = bool_read(f.readline().split()[0])
+        self.fst_vt['SubDyn']['OutCBModes'] = int_read(f.readline().split()[0])
+        self.fst_vt['SubDyn']['OutFEMModes'] = int_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['OutCOSM']  = bool_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['OutAll']   = bool_read(f.readline().split()[0])
         self.fst_vt['SubDyn']['OutSwtch'] = int_read(f.readline().split()[0])
