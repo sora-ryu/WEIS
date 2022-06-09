@@ -371,6 +371,8 @@ class InputReader_OpenFAST(object):
         self.fst_vt['ElastoDyn']['NTwGages'] = int(f.readline().split()[0])
         if self.fst_vt['ElastoDyn']['NTwGages'] != 0: #loop over elements if there are gauges to be added, otherwise assign directly
             self.fst_vt['ElastoDyn']['TwrGagNd'] = re.split(',| ',f.readline().strip())[:self.fst_vt['ElastoDyn']['NTwGages']]
+            if '' in self.fst_vt['ElastoDyn']['TwrGagNd']:
+                self.fst_vt['ElastoDyn']['TwrGagNd'].remove('')
             for i, gag in enumerate(self.fst_vt['ElastoDyn']['TwrGagNd']):
                 self.fst_vt['ElastoDyn']['TwrGagNd'][i] = int(gag.strip())
         else:
@@ -379,6 +381,8 @@ class InputReader_OpenFAST(object):
         self.fst_vt['ElastoDyn']['NBlGages'] = int(f.readline().split()[0])
         if self.fst_vt['ElastoDyn']['NBlGages'] != 0:
             self.fst_vt['ElastoDyn']['BldGagNd'] = re.split(',| ',f.readline().strip())[:self.fst_vt['ElastoDyn']['NBlGages']]
+            if '' in self.fst_vt['ElastoDyn']['BldGagNd']:
+                self.fst_vt['ElastoDyn']['BldGagNd'].remove('')
             for i, gag in enumerate(self.fst_vt['ElastoDyn']['BldGagNd']):
                 self.fst_vt['ElastoDyn']['BldGagNd'][i] = int(gag.strip())
         else:
