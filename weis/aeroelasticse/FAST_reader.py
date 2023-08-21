@@ -861,11 +861,13 @@ class InputReader_OpenFAST(object):
         f.readline()
         self.fst_vt['AeroDyn15']['UAMod']                  = int(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['FLookup']                = bool_read(f.readline().split()[0])
-        # self.fst_vt['AeroDyn15']['UAStartRad']             = float_read(f.readline().split()[0])
-        # self.fst_vt['AeroDyn15']['UAEndRad']               = float_read(f.readline().split()[0])
+        tmp = f.readline()
+        if tmp.find('UAStartRad'):
+            self.fst_vt['AeroDyn15']['UAStartRad'] = float_read(tmp.split()[0])
+            self.fst_vt['AeroDyn15']['UAEndRad'] = float_read(f.readline().split()[0])
+            f.readline()
 
         # Airfoil Information
-        f.readline()
         self.fst_vt['AeroDyn15']['AFTabMod']         = int(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['InCol_Alfa']       = int(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['InCol_Cl']         = int(f.readline().split()[0])
