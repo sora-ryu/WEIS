@@ -862,7 +862,7 @@ class InputReader_OpenFAST(object):
         self.fst_vt['AeroDyn15']['UAMod']                  = int(f.readline().split()[0])
         self.fst_vt['AeroDyn15']['FLookup']                = bool_read(f.readline().split()[0])
         tmp = f.readline()
-        if tmp.find('UAStartRad'):
+        if tmp.find('UAStartRad') >= 0:
             self.fst_vt['AeroDyn15']['UAStartRad'] = float_read(tmp.split()[0])
             self.fst_vt['AeroDyn15']['UAEndRad'] = float_read(f.readline().split()[0])
             f.readline()
