@@ -210,6 +210,8 @@ class Polar(object):
                 / cl_slope
                 * (1.6 * chord_over_r / 0.1267 * (a - chord_over_r**expon) / (b + chord_over_r**expon) - 1)
             )
+            if fcl < 0.:
+                fcl = 0.
         elif lift_method == "Snel":
             # Snel correction
             fcl = 3.0 * chord_over_r**2.0
@@ -508,10 +510,10 @@ class Polar(object):
 
 
         """
-        if window_offset is None:
-            dwin = np.array([-5, 10])
-            if self._radians:
-                dwin = np.radians(dwin)
+        # if window_offset is None:
+        dwin = np.array([-5, 10])
+        if self._radians:
+            dwin = np.radians(dwin)
         cl = self.cl
         cd = self.cd
         alpha = self.alpha
@@ -571,7 +573,8 @@ class Polar(object):
             a_f07_Upp = xInter[2]
             a_f07_Low = xInter[0]
         else:
-            raise Exception("cn_f does not ntersect cn 3 times.")
+            a_f07_Upp = xInter[-1]
+            a_f07_Low = xInter[0]
             # alpha1 =  abs(xInter[0])
             # alpha2 = -abs(xInter[0])
 
