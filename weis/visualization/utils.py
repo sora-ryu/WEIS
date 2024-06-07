@@ -8,6 +8,7 @@ import openmdao.api as om
 import plotly.graph_objects as go
 import os
 import yaml
+import re
 
 try:
     import ruamel_yaml as ry
@@ -135,6 +136,9 @@ def toggle(click, is_open):
 def store_dataframes(var_files):
     dfs = []
     for idx, file_path in var_files.items():
+        if file_path == 'None':
+            dfs.append({idx: []})
+            continue
         df = pd.read_csv(file_path, skiprows=[0,1,2,3,4,5,7], sep='\s+')
         dfs.append({idx: df.to_dict('records')})
     
@@ -170,6 +174,14 @@ def find_file_path_from_tree(nested_dict, filename, prepath=()):
             yield path + (filename, )
         elif hasattr(v, 'items'):
             yield from find_file_path_from_tree(v, filename, path)
+
+def find_iterations(nested_dict, prepath=()):
+    for k, v in nested_dict.items():
+        path = prepath + (k,)
+        if 'iteration' in k:
+            yield int(re.findall(r'\d+', k)[0])
+        elif hasattr(v, 'items'):
+            yield from find_iterations(v, path)
 
 
 def update_yaml(input_dict, yaml_filepath):
