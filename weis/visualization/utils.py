@@ -7,8 +7,11 @@ import numpy as np
 import openmdao.api as om
 import plotly.graph_objects as go
 import os
+import io
 import yaml
 import re
+import socket
+from dash import html
 
 try:
     import ruamel_yaml as ry
@@ -17,6 +20,86 @@ except Exception:
         import ruamel.yaml as ry
     except Exception:
         raise ImportError('No module named ruamel.yaml or ruamel_yaml')
+
+
+def checkPort(port, host="0.0.0.0"):
+    # check port availability and then close the socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = False
+    try:
+        sock.bind((host, port))
+        result = True
+    except:
+        result = False
+
+    sock.close()
+    return result
+
+
+def parse_yaml(file_path):
+    '''
+    Parse the data contents in dictionary format
+    '''
+    # print('Reading the input yaml file..')
+    try:
+        with io.open(file_path, 'r') as stream:
+            dict = yaml.safe_load(stream)
+        
+        dict['yamlPath'] = file_path
+        # print('input file dict:\n', dict)
+        return dict
+    
+    except FileNotFoundError:
+        print('Could not locate the input yaml file..')
+        exit()
+    
+    except Exception as e:
+        print(e)
+        exit()
+
+
+def dict_to_html(data, out_html_list, level):
+    '''
+    Show the nested dictionary data to html
+    '''
+
+    # return [html.H5(f'Heading {i+1}') for i in range(5)]        # Works!! -- no big line gap
+    # return [html.H5(f'{a}') for a, b in data.items()]       # Works
+    for k1, v1 in data.items():
+        if not k1 in ['dirs', 'files']:
+            # out_html_list.append(html.Pre(html.B(html.P(f'{'   '*level}{k1}'))))      # Big line gap
+            if not isinstance(v1, list) and not isinstance(v1, dict):
+                out_html_list.append(html.H6(f'{'---'*level}{k1}: {v1}'))
+                continue
+            
+            out_html_list.append(html.H6(f'{'---'*level}{k1}'))
+        
+        if isinstance(v1, list):
+            '''
+            out_html_list.append(html.Div([
+                                    html.Pre(html.P(f'{'   '*(level+1)}{i}')) for i in v1],
+                                    style={'border-width':'1px', 'border-style':'solid', 'border-color':'black', 'marginTop': 0, 'marginBottom': 0, 'paddingTop': 0, 'paddingBottom': 0}))
+            '''
+            out_html_list.append(html.Div([
+                                    html.H6(f'{'---'*(level+1)}{i}') for i in v1]))
+            
+        elif isinstance(v1, dict):
+            out_html_list = dict_to_html(v1, out_html_list, level+1)
+        # else:
+        #     out_html_list.append(html.Hr())
+
+    return out_html_list
+
+    '''
+    for a, b in data.items():
+        print('key: ', a)
+        # First level - outputDirStructure, userOptions, userPreferences, yamlPath
+        # yield '{}{}(\'{}\'),'.format(html.H5, '   '*c, a)
+        yield ['{},'.format(html.H5(a))]
+        # if isinstance(b, dict):
+        #         yield 'html.Div([\n{}html.P({}))'.format('    '*c, '\n'.join(dict_to_html(b, c+1)))
+
+    '''
 
 def read_cm(cm_file):
     """
