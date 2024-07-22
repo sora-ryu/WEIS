@@ -66,9 +66,7 @@ def dict_to_html(data, out_html_list, level):
     '''
     Show the nested dictionary data to html
     '''
-
-    # return [html.H5(f'Heading {i+1}') for i in range(5)]        # Works!! -- no big line gap
-    # return [html.H5(f'{a}') for a, b in data.items()]       # Works
+    
     for k1, v1 in data.items():
         if not k1 in ['dirs', 'files']:
             # out_html_list.append(html.Pre(html.B(html.P(f'{'   '*level}{k1}'))))      # Big line gap
@@ -79,31 +77,15 @@ def dict_to_html(data, out_html_list, level):
             out_html_list.append(html.H6(f'{'---'*level}{k1}'))
         
         if isinstance(v1, list):
-            '''
-            out_html_list.append(html.Div([
-                                    html.Pre(html.P(f'{'   '*(level+1)}{i}')) for i in v1],
-                                    style={'border-width':'1px', 'border-style':'solid', 'border-color':'black', 'marginTop': 0, 'marginBottom': 0, 'paddingTop': 0, 'paddingBottom': 0}))
-            '''
             out_html_list.append(html.Div([
                                     html.H6(f'{'---'*(level+1)}{i}') for i in v1]))
             
         elif isinstance(v1, dict):
             out_html_list = dict_to_html(v1, out_html_list, level+1)
-        # else:
-        #     out_html_list.append(html.Hr())
+    
 
     return out_html_list
 
-    '''
-    for a, b in data.items():
-        print('key: ', a)
-        # First level - outputDirStructure, userOptions, userPreferences, yamlPath
-        # yield '{}{}(\'{}\'),'.format(html.H5, '   '*c, a)
-        yield ['{},'.format(html.H5(a))]
-        # if isinstance(b, dict):
-        #         yield 'html.Div([\n{}html.P({}))'.format('    '*c, '\n'.join(dict_to_html(b, c+1)))
-
-    '''
 
 def read_cm(cm_file):
     """
@@ -287,13 +269,12 @@ def read_cost_variables(labels, refturb_variables):
     return cost_matrix
 
 
-def generate_raft_img(raft_design_dir, log_data):
+def generate_raft_img(raft_design_dir, plot_dir, log_data):
 
     n_plots = len(os.listdir(raft_design_dir))
     print('n_plots: ', n_plots)
 
     image_filenames = []
-    plot_dir = os.path.join(raft_design_dir,'..','raft_plots')
     os.makedirs(plot_dir,exist_ok=True)
 
     opt_outs = {}
@@ -321,11 +302,6 @@ def generate_raft_img(raft_design_dir, log_data):
         with open(os.path.join(raft_design_dir,f'raft_design_{i_plot}.pkl'),'rb') as f:
             design = pickle.load(f)
 
-        # print('===== design:\n', design)
-        # for k, v in design.items():
-        #     print('---', k)
-        #     if k == 'turbine':
-        #         print('gamma: ', v['tower'])
 
         # TODO: Found typo on gamma value at 1_raft_opt example
         design['turbine']['tower']['gamma'] = 0.0       # Change it from array([0.])
