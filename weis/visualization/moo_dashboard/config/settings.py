@@ -13,6 +13,15 @@ DEFAULT_PLOT_HEIGHT = 800
 MARKER_SIZE = 4
 MARKER_LINE_WIDTH = 0.5
 
+# Font size configuration
+BASE_FONT_SIZE = 12
+MIN_FONT_SIZE = 6
+MAX_FONT_SIZE = 14
+
+# Margin configuration
+BASE_MARGIN = 60
+MAX_MARGIN = 120
+
 # Color schemes
 COLOR_SCALES = {
     'samples': 'viridis',
