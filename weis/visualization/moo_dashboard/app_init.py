@@ -7,7 +7,7 @@ from dash import Dash
 # Import callback registration functions
 from callbacks.data_loading import register_data_loading_callbacks
 from callbacks.channel_selection import register_channel_selection_callbacks
-from callbacks.visualization import register_visualization_callbacks
+from callbacks.visualization import register_visualization_callbacks, register_table_callbacks
 
 # Import layout
 from layouts.layout import create_main_layout
@@ -34,6 +34,7 @@ def create_app():
     register_data_loading_callbacks(app)
     register_channel_selection_callbacks(app)
     register_visualization_callbacks(app)
+    register_table_callbacks(app)
     
     return app
 

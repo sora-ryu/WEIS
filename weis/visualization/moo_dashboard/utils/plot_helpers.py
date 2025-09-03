@@ -224,3 +224,36 @@ def create_empty_figure_with_message(message: str, message_color: str = 'gray') 
             }]
         }
     }
+
+
+def create_table_figure(data: pd.DataFrame) -> Dict:
+    """
+    Create a table figure from a DataFrame with index (which is prior cols)
+
+    Args:
+        data: DataFrame to display in the table
+        
+    Returns:
+        Plotly figure dictionary
+    """
+    return {
+        'data': [
+            {
+                'type': 'table',
+                'header': {
+                    'values': ['index']+list(data.columns),
+                    'fill': {'color': 'lightgray'},
+                    'align': 'left'
+                },
+                'cells': {
+                    'values': [data.index] + [data[col] for col in data.columns],
+                    'fill': {'color': 'white'},
+                    'align': 'left'
+                }
+            }
+        ],
+        'layout': {
+            'title': 'Data Table',
+            'margin': {'l': 10, 'r': 10, 't': 30, 'b': 10}
+        }
+    }

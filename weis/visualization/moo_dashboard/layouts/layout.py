@@ -48,6 +48,11 @@ def create_main_layout() -> html.Div:
                 dbc.Col(cfg_graph_input, width=4),
                 dbc.Col(dcc.Graph(id='splom'), width=8)
             ], className="mt-4"),
+
+            # Data Table
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='data-table'), width=12)
+            ])
         ]),
         # Data stores
         *create_data_stores()
