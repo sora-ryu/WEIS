@@ -35,7 +35,7 @@ def create_main_layout() -> html.Div:
             dbc.Row([
                 dbc.Col([
                     dbc.Button("Clear Highlighting", id='clear-highlight-btn', color='secondary', outline=True, size='sm'),
-                    html.Small("Click a point to highlight, double-click plot to clear", className="text-muted d-block mt-1")
+                    html.Small("Click a point to highlight", className="text-muted d-block mt-1")
                 ])
             ])
         ]),
