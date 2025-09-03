@@ -2,11 +2,15 @@
 Plot helpers and formatting utilities
 """
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 from typing import Dict, List
 from config.settings import (
     DEFAULT_PLOT_WIDTH, DEFAULT_PLOT_HEIGHT, MARKER_SIZE, MARKER_LINE_WIDTH,
-    BASE_FONT_SIZE, MIN_FONT_SIZE, MAX_FONT_SIZE, BASE_MARGIN, MAX_MARGIN
+    BASE_FONT_SIZE, MIN_FONT_SIZE, MAX_FONT_SIZE, BASE_MARGIN, MAX_MARGIN,
+    HIGHLIGHT_COLOR, HIGHLIGHT_SIZE_MULTIPLIER, HIGHLIGHT_OPACITY, 
+    NON_HIGHLIGHT_OPACITY, HIGHLIGHT_LINE_WIDTH
 )
 import math
 
@@ -95,103 +99,108 @@ def calculate_margin_size(num_vars: int, font_size: int) -> int:
     return min(margin, MAX_MARGIN)
 
 
-def create_splom_figure(df: pd.DataFrame, dimensions: List[str], num_vars: int) -> px.scatter_matrix:
+def create_splom_figure(df: pd.DataFrame, dimensions: List[str], num_vars: int, highlighted_iteration: int = None):
     """
     Create a scatter plot matrix (SPLOM) with color-coded samples and auto-sized labels.
+    Uses plotly.graph_objects for better control of marker properties and highlighting.
     
     Args:
         df: DataFrame with simplified column names and sample_id
         dimensions: List of dimension names for the SPLOM
         num_vars: Number of variables for title
-        
+        highlighted_iteration: Optional iteration to highlight across all subplots
+
     Returns:
-        Plotly scatter matrix figure
+        Plotly figure with SPLOM
     """
-    # Calculate optimal font size and margins
-    font_size = calculate_font_size(num_vars, DEFAULT_PLOT_WIDTH)
-    margin_size = calculate_margin_size(num_vars, font_size)
+    if df.empty or not dimensions:
+        return go.Figure()
+
+    # Prepare data for SPLOM
+    n_vars = num_vars
+    n_samples = len(df)
+        
+    # Create color array based on iteration index
+    colors = np.arange(n_samples) / max(1, n_samples - 1)
     
-    # Determine max label length based on number of variables
-    max_label_length = 20 if num_vars <= 3 else 15 if num_vars <= 5 else 12 if num_vars <= 7 else 10
-    
-    # Create a mapping of original to truncated names for the plot
-    original_dimensions = dimensions.copy()
-    truncated_dimensions = truncate_labels(dimensions, max_label_length)
-    
-    # Create a temporary DataFrame with truncated column names for the plot
-    plot_df = df.copy()
-    dimension_mapping = dict(zip(original_dimensions, truncated_dimensions))
-    
-    # Rename columns in the DataFrame for plotting
-    for orig, trunc in dimension_mapping.items():
-        if orig in plot_df.columns:
-            plot_df = plot_df.rename(columns={orig: trunc})
-    
-    splom_fig = px.scatter_matrix(
-        plot_df,
-        dimensions=truncated_dimensions,
-        color='sample_id',
-        hover_data=['sample_id'],
-        color_continuous_scale='viridis',
-        title=f'Scatter Plot Matrix ({num_vars} variables)'
-    )
-    
-    splom_fig.update_layout(
-        width=DEFAULT_PLOT_WIDTH,
-        height=DEFAULT_PLOT_HEIGHT,
-        title={
-            'text': f'Scatter Plot Matrix ({num_vars} variables)',
-            'x': 0.5,
-            'xanchor': 'center'
-        },
-        hovermode='closest',
-        coloraxis_colorbar=dict(
-            title="Sample ID",
-            title_side="right"
+    # Create text labels
+    text_labels = [f"Iteration {i}" for i in range(n_samples)]
+
+    # Create main SPLOM trace with normal points
+    splom_trace = go.Splom(
+        dimensions=dimensions,
+        text=text_labels,
+        marker=dict(
+            color=colors,
+            colorscale='Viridis',
+            size=8,
+            symbol='circle',
+            line=dict(
+                color='white',
+                width=0.5
+            ),
+            opacity=1.0 if highlighted_iteration is None else NON_HIGHLIGHT_OPACITY
         ),
-        # Add margins to prevent label cutoff
-        margin=dict(
-            l=margin_size,
-            r=margin_size,
-            t=margin_size + 20,  # Extra space for title
-            b=margin_size
-        ),
-        # Configure font sizes for all text elements
-        font=dict(size=font_size),
-        # Adjust axis label properties
+        diagonal_visible=True,
+        showupperhalf=True,
+        showlowerhalf=False,
+        name="Data Points",
         showlegend=False
     )
     
-    # Update all axes with optimized text settings
-    for i in range(num_vars):
-        for j in range(num_vars):
-            # Update x-axis labels
-            splom_fig.update_xaxes(
-                title_font_size=font_size,
-                tickfont_size=max(6, font_size - 2),
-                title_standoff=10,
-                row=i+1, col=j+1
-            )
-            # Update y-axis labels  
-            splom_fig.update_yaxes(
-                title_font_size=font_size,
-                tickfont_size=max(6, font_size - 2),
-                title_standoff=10,
-                row=i+1, col=j+1
-            )
+    traces = [splom_trace]
     
-    splom_fig.update_traces(
-        diagonal_visible=True,
-        showlowerhalf=False,
-        showupperhalf=True,
-        hovertemplate='<b>Sample %{customdata[0]}</b><br>' +
-                      '%{xaxis.title.text}: %{x}<br>' +
-                      '%{yaxis.title.text}: %{y}<br>' +
-                      '<extra></extra>',
-        marker=dict(size=MARKER_SIZE, line=dict(width=MARKER_LINE_WIDTH, color='white'))
+    # Add highlighted trace on top if highlighting is needed
+    if highlighted_iteration is not None and highlighted_iteration < n_samples:
+        # Create dimensions for highlighted point
+        highlighted_dimensions = []
+        for dim_dict in dimensions:
+            dim_label = dim_dict['label']
+            dim_values = dim_dict['values']
+            
+            # Extract the value for the highlighted iteration
+            highlighted_value = dim_values[highlighted_iteration]
+            
+            highlighted_dimensions.append(dict(
+                label=dim_label,
+                values=[highlighted_value]  # Single value as list
+            ))
+        
+        # Create highlighted trace (rendered on top)
+        highlighted_trace = go.Splom(
+            dimensions=highlighted_dimensions,
+            text=[f"Iteration {highlighted_iteration} (Selected)"],
+            marker=dict(
+                color=HIGHLIGHT_COLOR,
+                size=MARKER_SIZE * HIGHLIGHT_SIZE_MULTIPLIER,
+                symbol='circle',
+                line=dict(
+                    color=HIGHLIGHT_COLOR,
+                    width=HIGHLIGHT_LINE_WIDTH
+                ),
+                opacity=HIGHLIGHT_OPACITY
+            ),
+            diagonal_visible=True,
+            showupperhalf=True,
+            showlowerhalf=False,
+            name="Highlighted Point",
+            showlegend=False
+        )
+        
+        traces.append(highlighted_trace)
+
+    fig = go.Figure(data=traces)
+
+    # Update layout
+    fig.update_layout(
+        title=f"Scatterplot Matrix (SPLOM) - {n_vars} Variables × {n_samples} Iterations",
+        font=dict(size=12),
+        plot_bgcolor='rgba(240,240,240,0.95)',
+        margin=dict(l=80, r=80, t=100, b=80),
+        height=min(800, max(600, n_vars * 100))
     )
     
-    return splom_fig
+    return fig
 
 
 def create_empty_figure_with_message(message: str, message_color: str = 'gray') -> Dict:

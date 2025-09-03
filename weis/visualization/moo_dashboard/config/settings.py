@@ -22,6 +22,13 @@ MAX_FONT_SIZE = 14
 BASE_MARGIN = 60
 MAX_MARGIN = 120
 
+# Highlighting configuration
+HIGHLIGHT_COLOR = 'red'
+HIGHLIGHT_SIZE_MULTIPLIER = 2
+HIGHLIGHT_OPACITY = 1.0
+NON_HIGHLIGHT_OPACITY = 0.4
+HIGHLIGHT_LINE_WIDTH = 3
+
 # Color schemes
 COLOR_SCALES = {
     'samples': 'viridis',

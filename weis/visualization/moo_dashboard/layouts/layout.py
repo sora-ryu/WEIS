@@ -31,6 +31,13 @@ def create_main_layout() -> html.Div:
             html.Div(id='channels', children=[
                 dbc.Alert("Load YAML file to see variable options", color="info", className="text-center")
             ]),
+            html.Hr(),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Button("Clear Highlighting", id='clear-highlight-btn', color='secondary', outline=True, size='sm'),
+                    html.Small("Click a point to highlight, double-click plot to clear", className="text-muted d-block mt-1")
+                ])
+            ])
         ]),
     ], className="mb-3")
     

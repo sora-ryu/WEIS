@@ -92,7 +92,8 @@ def create_data_stores() -> list:
     return [
         dcc.Store(id='csv-df'),
         dcc.Store(id='yaml-df'),
-        dcc.Store(id='selected-channels', data=[])
+        dcc.Store(id='selected-channels', data=[]),
+        dcc.Store(id='selected-iteration', data="")  # Store for selected iteration (highlight)
     ]
 
 

@@ -130,7 +130,7 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
         selected_vars: List of selected variable names
         
     Returns:
-        Tuple of (processed_df, simplified_names_dict, simplified_var_list)
+        Tuple of (simplified_df, dimensions)
     """
     # Filter variables that exist in the DataFrame
     available_vars = [var for var in selected_vars if var in df.columns]
@@ -141,15 +141,16 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
     # Create simplified DataFrame
     simplified_df = df[available_vars].copy()
     simplified_df['sample_id'] = range(len(simplified_df))
-    
-    # Create mapping of simplified names
-    simplified_names = {}
+
+    # Create dimensions for SPLOM
+    dimensions = []
     for var in available_vars:
         simplified_name = var.split('.')[-1]
-        simplified_names[var] = simplified_name
+        dimensions.append(dict(
+            label=simplified_name,
+            values=simplified_df[var].values
+        ))
         simplified_df = simplified_df.rename(columns={var: simplified_name})
     
-    # Get list of simplified variable names
-    simplified_vars = [simplified_names[var] for var in available_vars]
-    
-    return simplified_df, simplified_names, simplified_vars
+
+    return simplified_df, dimensions

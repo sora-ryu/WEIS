@@ -6,8 +6,8 @@ This is having the same coding environment as WEIS Input/Output Viz tool (appSer
 - [X] Data Upload
 - [X] Dynamic Scatter plot matrix renderer with toggle buttons - channel multi-selection from the user
 - [X] Link samples
-    - [ ] Highlight samples once clicked
-    - [ ] Maybe add text field to show all information on that iteration
+    - [X] Highlight samples once clicked
+    - [X] Maybe add text field to show all information on that iteration
 - [ ] Show Pareto Fronts
     - [ ] Calculate from scratch with checking constraints bounds
 - [ ] Download interactive version of html
