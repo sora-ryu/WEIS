@@ -6,7 +6,10 @@ import pandas as pd
 from dash import Input, Output, State, callback, callback_context
 
 from utils.data_processing import prepare_dataframe_for_splom
-from utils.plot_helpers import create_splom_figure, create_empty_figure_with_message, create_table_figure
+from utils.plot_helpers import (
+    create_splom_figure, create_empty_figure_with_message, 
+    create_table_figure
+)
 
 
 def register_visualization_callbacks(app):
@@ -82,16 +85,20 @@ def register_table_callbacks(app):
               [Input('csv-df', 'data'),
                Input('selected-iteration', 'data')])
     def update_table(csv_data, selected_iteration):
-        """Update the data table based on clicked data point from SPLOM"""
+        """Update the data table based on selected data point from SPLOM with enhanced statistics"""
         if selected_iteration is None:
             return create_empty_figure_with_message(
-                'Click on a data point in the SPLOM to see details', 'gray'
+                'Click on a data point in the SPLOM to see detailed analysis', 'gray'
             )
 
         # Convert JSON back to DataFrame
         df = pd.read_json(io.StringIO(csv_data), orient='split')
-        filtered_df = df.iloc[[selected_iteration]].T       # Transpose dataframe so that we can have some additional rows
-
+        
+        # Get the selected row data and transpose for display
+        filtered_df = df.iloc[[selected_iteration]].T
+        
+        print(f'Selected iteration: {selected_iteration}')
         print('Filtered DataFrame\n', filtered_df)
 
+        # Use the enhanced table with statistical comparisons
         return create_table_figure(filtered_df)
