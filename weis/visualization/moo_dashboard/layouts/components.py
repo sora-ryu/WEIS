@@ -44,7 +44,7 @@ def create_file_input_row(file_type: str, file_id_prefix: str, tooltip_text: str
     ], className="mb-3")
 
 
-def create_button_group(variables: list, category_name: str, color: str, selected_vars: list) -> list:
+def create_button_group(variables: list, category_name: str, color: str, selected_vars: list, array_columns: set = None) -> list:
     """
     Create a button group for variable selection.
     
@@ -53,6 +53,7 @@ def create_button_group(variables: list, category_name: str, color: str, selecte
         category_name: Display name for the category
         color: Bootstrap color for the buttons
         selected_vars: List of currently selected variables
+        array_columns: Set of column names that contain arrays
         
     Returns:
         List of HTML components
@@ -60,25 +61,74 @@ def create_button_group(variables: list, category_name: str, color: str, selecte
     if not variables:
         return []
     
-    buttons = []
+    array_columns = array_columns or set()
+    all_components = []
+    
     for var in variables:
-        is_selected = (var in selected_vars)
-        buttons.append(
-            dbc.Button(
+        is_array = var in array_columns
+        
+        # Check if any form of this variable is selected
+        is_selected = (var in selected_vars or 
+                      f"{var}_min" in selected_vars or 
+                      f"{var}_max" in selected_vars or 
+                      f"{var}_combined" in selected_vars)
+        
+        # For regular variables, create normal button
+        if not is_array:
+            print('Debug: Creating button for regular variable:', var)
+            button = dbc.Button(
                 var,
                 id={'type': 'channel-btn', 'index': var},
                 color=color,
                 outline=not is_selected,
                 size='sm',
-                className='me-1 mb-1'
+                className='me-1 mb-1',
+                n_clicks=0,
             )
-        )
+            all_components.append(button)
+        else:
+            print('Debug: Creating button group for array variable:', var)
+            # For array variables, create main button with sub-options
+            separate_selected = f"{var}_min" in selected_vars and f"{var}_max" in selected_vars
+            combine_selected = f"{var}_combined" in selected_vars
+            
+            # Main variable label (not clickable)
+            var_container = html.Div([
+                html.Div([
+                    html.Strong(var),
+                ], className="mb-1"),
+                html.Div([
+                    dbc.Button(
+                        "Separate (min/max)",
+                        id={'type': 'array-option-btn', 'index': 'separate', 'var': var},
+                        color="info",
+                        outline=not separate_selected,
+                        size='sm',
+                        className='me-2 mb-1',
+                        style={"fontSize": "0.75rem"},
+                        n_clicks=0
+                    ),
+                    dbc.Button(
+                        "Combine (range)",
+                        id={'type': 'array-option-btn', 'index': 'combine', 'var': var},
+                        color="info", 
+                        outline=not combine_selected,
+                        size='sm',
+                        className='me-1 mb-1',
+                        style={"fontSize": "0.75rem"},
+                        n_clicks=0
+                    )
+                ], className="ms-3")
+            ], className="mb-2 p-2 border rounded", style={"backgroundColor": "#f8f9fa"})
+            
+            all_components.append(var_container)
     
+    print(all_components)
     return [
         html.Div([
-            html.Small(category_name, className="text-muted fw-bold"),
-            html.Div(buttons, className="d-flex flex-wrap")
-        ], className="mb-2")
+            html.Small(category_name, className="text-muted fw-bold mb-2 d-block"),
+            html.Div(all_components)
+        ], className="mb-3")
     ]
 
 
