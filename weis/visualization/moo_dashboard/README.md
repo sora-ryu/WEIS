@@ -23,10 +23,14 @@ python main.py      # Make sure run this command at moo_dashboard directory
 - [ ] Show Pareto Fronts (Higher priority)
     - [ ] Calculate from scratch with checking constraints bounds
 - [ ] Download interactive version of html
+    - [ ] I think only graphs or tables should be exportable, not the entire page.
 
 - How to calculate Pareto Fronts with 3 objective functions?
     - Should be okay with Cory's function
     - For cross checking, we need SPLOM visualization
+
+- Debug
+    - [X] SPLOM initialization doesn't work properly, where the first Objective channel is automatically selected by default.
 
 ## Food for Thoughts
 - How to work on 3+ objectives?

@@ -100,10 +100,17 @@ def register_channel_selection_callbacks(app):
             return current_selected or []
         
         current_selected = current_selected or []
-        print(f"DEBUG: Current selected before: {current_selected}")
+
+        # Check if any button was actually clicked (n_clicks > 0)
+        # This prevents the callback from firing on initial load when n_clicks are None
+        total_channel_clicks = sum(click or 0 for click in channel_clicks)
+        total_array_clicks = sum(click or 0 for click in array_option_clicks)
+        print(f"DEBUG: Total channel clicks: {total_channel_clicks}, Total array clicks: {total_array_clicks}")
+        
+        if total_channel_clicks == 0 and total_array_clicks == 0:
+            return current_selected or []
         
         try:
-            # trigger_info = ctx.triggered[0]['prop_id']
             trigger_info = ctx.triggered_id
             print(f"DEBUG: Trigger info: {trigger_info}")
             
