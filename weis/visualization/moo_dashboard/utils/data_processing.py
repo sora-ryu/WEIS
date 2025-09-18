@@ -348,22 +348,22 @@ def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
                 
                 # Check if j dominates i (assuming minimization)
                 better_in_all = True
-                better_in_at_least_one = False
+                better_at_least_one = False
                 
                 for k in range(len(objectives)):
                     if obj_values[j, k] > obj_values[i, k]:
                         better_in_all = False
                         break
                     elif obj_values[j, k] < obj_values[i, k]:
-                        better_in_at_least_one = True
+                        better_at_least_one = True
                 
-                if better_in_all and better_in_at_least_one:
-                    is_dominated = True
+                if better_in_all and better_at_least_one:
+                    is_dominated = True         # Set as dominated if dominated condition met true for all objectives
                     break
             
-            if not is_dominated:
+            if not is_dominated:                # Basically, pareto fronts will be a union of non-dominated solutions for each pair of objectives.
                 pareto_indices.append(i)
         
         print(f"Found {len(pareto_indices)} Pareto optimal solutions algorithmically")
-        
+
         return pareto_indices
