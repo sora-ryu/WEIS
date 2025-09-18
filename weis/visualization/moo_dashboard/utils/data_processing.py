@@ -92,17 +92,14 @@ def extract_variable_names(var_list: List[Any]) -> List[str]:
         var_list: List of variables from YAML (can be nested)
         
     Returns:
-        Flattened list of variable names
+        Dictionary with variable names as keys and other details as values
     """
-    names = []
+    names = {}
     for item in var_list:
         if isinstance(item, list):
-            if isinstance(item[0], list):
-                names.append(item[0][0])  # Extract the first element of the first list
-            else:
-                names.append(item[0])
+            names[item[0]] = {k: float(item[1][k]) for k in ['lower', 'upper'] if k in item[1]}
         else:
-            names.append(item)
+            names[item] = None
     return names
 
 
@@ -123,32 +120,28 @@ def process_yaml_config(config: Dict) -> Dict[str, List[str]]:
     }
 
 
-def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> tuple:
+def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml_data: Dict) -> tuple:
     """
     Prepare DataFrame for SPLOM visualization with simplified names and sample IDs.
-    Handles array variables with separate/combine options.
+    Array variables are automatically processed as separate min/max values.
     
     Args:
         df: Source DataFrame
-        selected_vars: List of selected variable names (may include _min, _max, _combined suffixes)
+        selected_vars: List of selected variable names (may include _min, _max suffixes)
         
     Returns:
         Tuple of (simplified_df, dimensions)
     """
     
-    # Parse selected variables to understand array processing requirements
+    # Parse selected variables - array variables are automatically processed as separate
     processed_vars = {}
     for var in selected_vars:
         if var.endswith('_min') or var.endswith('_max'):
-            # Separate array processing
+            # Array processing with min/max
             base_var = var.rsplit('_', 1)[0]
             if base_var not in processed_vars:
-                processed_vars[base_var] = {'type': 'separate', 'vars': []}
+                processed_vars[base_var] = {'type': 'array', 'vars': []}
             processed_vars[base_var]['vars'].append(var)
-        elif var.endswith('_combined'):
-            # Combined array processing
-            base_var = var.rsplit('_', 1)[0]
-            processed_vars[base_var] = {'type': 'combined', 'vars': [var]}
         else:
             # Regular variable
             processed_vars[var] = {'type': 'regular', 'vars': [var]}
@@ -179,7 +172,7 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
                 values=df[base_var].values
             ))
             
-        elif config['type'] == 'separate':
+        elif config['type'] == 'array':
             # Array variable - separate min and max
             array_data = df[base_var]
             print(f"DEBUG: Processing array variable '{base_var}' for separate min/max")
@@ -228,8 +221,14 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
                     
                     # Ensure we have a valid numeric array
                     if len(arr) > 0 and not np.isnan(arr).all():
-                        min_values.append(float(np.nanmin(arr)))
-                        max_values.append(float(np.nanmax(arr)))
+                        # Sanity check if min/max values are within constraints
+                        min_val = float(np.nanmin(arr))
+                        max_val = float(np.nanmax(arr))
+                        
+                        if min_val > yaml_data['constraints'][base_var]['lower'] and min_val < yaml_data['constraints'][base_var]['upper']:
+                            min_values.append(min_val)
+                        if max_val > yaml_data['constraints'][base_var]['lower'] and max_val < yaml_data['constraints'][base_var]['upper']:
+                            max_values.append(max_val)
                     else:
                         # If all values are NaN, append NaN
                         min_values.append(np.nan)
@@ -252,74 +251,6 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
                 dict(label=min_name, values=min_values),
                 dict(label=max_name, values=max_values)
             ])
-            
-        elif config['type'] == 'combined':
-            # Array variable - combined representation (using range or mean)
-            array_data = df[base_var]
-            print(f"DEBUG: Processing array variable '{base_var}' for combined representation")
-            print(f"DEBUG: Array data type: {type(array_data.iloc[0]) if len(array_data) > 0 else 'empty'}")
-            print(f"DEBUG: Sample array values: {array_data.head(2).tolist()}")
-            
-            # Process array values to create combined representation
-            combined_values = []
-            
-            for val in array_data:
-                try:
-                    if isinstance(val, (list, np.ndarray)):
-                        arr = np.array(val, dtype=float)
-                    elif isinstance(val, str):
-                        try:
-                            # Try to parse as a Python literal (list, tuple, etc.)
-                            parsed_val = ast.literal_eval(val)
-                            if isinstance(parsed_val, (list, tuple)):
-                                arr = np.array(parsed_val, dtype=float)
-                            else:
-                                arr = np.array([float(parsed_val)])
-                        except (ValueError, SyntaxError):
-                            # If parsing fails, try numpy-style string parsing
-                            try:
-                                # Handle numpy array string format like '[0. 0. 0. 0. 0. 0. 0.]'
-                                val_clean = val.strip()
-                                if val_clean.startswith('[') and val_clean.endswith(']'):
-                                    # Remove brackets and split by whitespace
-                                    inner_str = val_clean[1:-1].strip()
-                                    if inner_str:
-                                        # Split by whitespace and convert to float
-                                        str_values = inner_str.split()
-                                        arr = np.array([float(x) for x in str_values if x.strip()], dtype=float)
-                                    else:
-                                        arr = np.array([], dtype=float)
-                                else:
-                                    # Try direct float conversion
-                                    arr = np.array([float(val)])
-                            except (ValueError, TypeError):
-                                print(f"Warning: Could not convert '{val}' to numeric array for combined processing, skipping")
-                                combined_values.append(np.nan)
-                                continue
-                    else:
-                        arr = np.array([float(val)])
-                    
-                    # Ensure we have a valid numeric array
-                    if len(arr) > 0 and not np.isnan(arr).all():
-                        # Use range (max - min) as the combined representation
-                        range_val = float(np.nanmax(arr) - np.nanmin(arr))
-                        combined_values.append(range_val)
-                    else:
-                        combined_values.append(np.nan)
-                        
-                except Exception as e:
-                    print(f"Warning: Error processing array value '{val}' for combined: {e}")
-                    combined_values.append(np.nan)
-            
-            # Add combined column
-            base_name = base_var.split('.')[-1]
-            combined_name = f"{base_name}_range"
-            
-            simplified_df[combined_name] = combined_values
-            dimensions.append(dict(
-                label=combined_name,
-                values=combined_values
-            ))
     
     # Add sample_id
     simplified_df['sample_id'] = range(len(simplified_df))

@@ -86,10 +86,10 @@ def register_channel_selection_callbacks(app):
         print(f"DEBUG: Detected array columns: {array_columns}")
 
         # Extract all variables
-        objectives = yaml_data.get('objectives', [])
-        constraints = yaml_data.get('constraints', [])
-        design_vars = yaml_data.get('design_vars', [])
-        
+        objectives = list(yaml_data['objectives'].keys())
+        constraints = list(yaml_data['constraints'].keys())
+        design_vars = list(yaml_data['design_vars'].keys())
+
         all_variables = objectives + constraints + design_vars
         
         if not all_variables:
@@ -115,12 +115,11 @@ def register_channel_selection_callbacks(app):
 
     @callback(Output('selected-channels', 'data'),
               [Input({'type': 'channel-btn', 'index': ALL}, 'n_clicks'),
-               Input({'type': 'array-option-btn', 'index': ALL, 'var': ALL}, 'n_clicks'),
-               Input({'type': 'array-toggle-btn', 'index': ALL}, 'n_clicks')],
+               Input({'type': 'array-channel-btn', 'index': ALL}, 'n_clicks')],
               State('selected-channels', 'data'),
               prevent_initial_call=True)
-    def handle_channels_selection(channel_clicks, array_option_clicks, array_toggle_clicks, current_selected):
-        """Handle channel button clicks and array option button clicks for multi-select functionality."""
+    def handle_channels_selection(channel_clicks, array_channel_clicks, current_selected):
+        """Handle channel button clicks for multi-select functionality."""
         ctx = callback_context
         if not ctx.triggered:
             return current_selected or []
@@ -128,18 +127,16 @@ def register_channel_selection_callbacks(app):
         current_selected = current_selected or []
 
         # Check if any button was actually clicked (n_clicks > 0)
-        # This prevents the callback from firing on initial load when n_clicks are None
         total_channel_clicks = sum(click or 0 for click in channel_clicks)
-        total_array_clicks = sum(click or 0 for click in array_option_clicks)
-        total_toggle_clicks = sum(click or 0 for click in array_toggle_clicks)
+        total_array_clicks = sum(click or 0 for click in array_channel_clicks)
         
-        if total_channel_clicks == 0 and total_array_clicks == 0 and total_toggle_clicks == 0:
+        if total_channel_clicks == 0 and total_array_clicks == 0:
             return current_selected or []
         
         try:
             trigger_info = ctx.triggered_id
             
-            if  trigger_info['type'] == 'channel-btn':
+            if trigger_info['type'] == 'channel-btn':
                 # Handle regular channel button clicks
                 clicked_var = trigger_info['index']
                 print(f"DEBUG: Regular channel clicked: {clicked_var}")
@@ -151,38 +148,29 @@ def register_channel_selection_callbacks(app):
                 else:
                     current_selected.append(clicked_var)
                     print(f"DEBUG: Added {clicked_var}")
-            elif trigger_info['type'] == 'array-option-btn':
-                # Handle array option button clicks (separate/combine)
-                var_name = trigger_info['var']
-                option = trigger_info['index']  # 'separate' or 'combine'
-                
-                print(f"DEBUG: Array option clicked - var: {var_name}, option: {option}")
-                
-                # Remove any existing entries for this variable
-                current_selected = [sel for sel in current_selected 
-                                  if not (sel.startswith(f"{var_name}_") or sel == var_name)]
-                
-                # Add the new selection
-                if option == 'separate':
-                    current_selected.extend([f"{var_name}_min", f"{var_name}_max"])
-                    print(f"DEBUG: Added separate: {var_name}_min, {var_name}_max")
-                elif option == 'combine':
-                    current_selected.append(f"{var_name}_combined")
-                    print(f"DEBUG: Added combined: {var_name}_combined")
-            elif trigger_info['type'] == 'array-toggle-btn':
-                # Handle array toggle button clicks (remove all selections for this array)
+                    
+            elif trigger_info['type'] == 'array-channel-btn':
+                # Handle array channel button clicks (automatically use separate mode)
                 var_name = trigger_info['index']
-                print(f"DEBUG: Array toggle clicked: {var_name}")
+                print(f"DEBUG: Array channel clicked: {var_name}")
                 
-                # Remove any existing entries for this variable
-                old_count = len(current_selected)
-                current_selected = [sel for sel in current_selected 
-                                  if not (sel.startswith(f"{var_name}_") or sel == var_name)]
+                # Check if this array variable is already selected
+                min_var = f"{var_name}_min"
+                max_var = f"{var_name}_max"
+                is_selected = min_var in current_selected and max_var in current_selected
                 
-                if len(current_selected) < old_count:
-                    print(f"DEBUG: Removed all selections for {var_name}")
+                if is_selected:
+                    # Remove both min and max
+                    current_selected = [sel for sel in current_selected 
+                                      if sel not in [min_var, max_var]]
+                    print(f"DEBUG: Removed array: {min_var}, {max_var}")
                 else:
-                    print(f"DEBUG: No selections to remove for {var_name}")
+                    # Remove any existing entries for this variable first
+                    current_selected = [sel for sel in current_selected 
+                                      if not (sel.startswith(f"{var_name}_") or sel == var_name)]
+                    # Add min and max
+                    current_selected.extend([min_var, max_var])
+                    print(f"DEBUG: Added array: {min_var}, {max_var}")
             
             print(f"DEBUG: Current selected after: {current_selected}")
             return current_selected

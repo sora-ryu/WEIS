@@ -70,8 +70,7 @@ def create_button_group(variables: list, category_name: str, color: str, selecte
         # Check if any form of this variable is selected
         is_selected = (var in selected_vars or 
                       f"{var}_min" in selected_vars or 
-                      f"{var}_max" in selected_vars or 
-                      f"{var}_combined" in selected_vars)
+                      f"{var}_max" in selected_vars)
         
         # For regular variables, create normal button
         if not is_array:
@@ -87,48 +86,19 @@ def create_button_group(variables: list, category_name: str, color: str, selecte
             )
             all_components.append(button)
         else:
-            # For array variables, create label with sub-options on same line
-            separate_selected = f"{var}_min" in selected_vars and f"{var}_max" in selected_vars
-            combine_selected = f"{var}_combined" in selected_vars
-            any_selected = separate_selected or combine_selected
+            # For array variables, create button that automatically uses separate mode
+            button = dbc.Button(
+                f"{var} (min/max)",
+                id={'type': 'array-channel-btn', 'index': var},
+                color=color,
+                outline=not is_selected,
+                size='sm',
+                className='flex-shrink-0',
+                style={'marginRight': '0.25rem', 'marginBottom': '0.25rem'},
+                n_clicks=0,
+            )
             
-            # Create container with label and buttons on same line
-            var_container = html.Div([
-                # Variable label - clickable to toggle sub-options
-                dbc.Button(
-                    var,
-                    id={'type': 'array-toggle-btn', 'index': var},  # Clickable to toggle
-                    color=color,
-                    outline=not any_selected,
-                    size='sm',
-                    style={'marginRight': '0.5rem', 'marginBottom': '0.25rem'},
-                    disabled=False,  # Make it clickable
-                    n_clicks=0
-                ),
-                # Option buttons with rounded style
-                dbc.Button(
-                    "Separate",
-                    id={'type': 'array-option-btn', 'index': 'separate', 'var': var},
-                    color="secondary",
-                    outline=not separate_selected,
-                    size='sm',
-                    className='rounded-pill',
-                    style={"fontSize": "0.75rem", 'marginRight': '0.25rem', 'marginBottom': '0.25rem'},
-                    n_clicks=0
-                ),
-                dbc.Button(
-                    "Combine",
-                    id={'type': 'array-option-btn', 'index': 'combine', 'var': var},
-                    color="secondary", 
-                    outline=not combine_selected,
-                    size='sm',
-                    className='rounded-pill',
-                    style={"fontSize": "0.75rem", 'marginRight': '0.25rem', 'marginBottom': '0.25rem'},
-                    n_clicks=0
-                )
-            ], className="d-flex align-items-center flex-wrap")
-            
-            all_components.append(var_container)
+            all_components.append(button)
     
     return [
         html.Div([

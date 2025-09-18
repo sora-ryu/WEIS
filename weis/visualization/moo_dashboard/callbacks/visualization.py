@@ -84,7 +84,7 @@ def register_visualization_callbacks(app):
         all_selected_vars = list(set(selected_channels))
 
         # Prepare data for SPLOM
-        result = prepare_dataframe_for_splom(df, all_selected_vars)
+        result = prepare_dataframe_for_splom(df, all_selected_vars, yaml_data)
         if result[0] is None:  # No valid data
             return create_empty_figure_with_message(
                 'Click variable buttons to select channels for SPLOM', 'blue'
@@ -97,7 +97,7 @@ def register_visualization_callbacks(app):
         if pareto_enabled and yaml_data is not None:
             try:
                 # Get objectives from YAML data
-                objectives = yaml_data.get('objectives', [])
+                objectives = list(yaml_data['objectives'].keys())
                 
                 if len(objectives) >= 2:
                     print(f"DEBUG: Calculating Pareto front for objectives: {objectives}")
