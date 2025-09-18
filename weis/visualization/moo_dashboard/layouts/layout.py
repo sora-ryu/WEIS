@@ -50,9 +50,18 @@ def create_main_layout() -> html.Div:
                         id='clear-highlight-btn', 
                         color='secondary', 
                         outline=True, 
-                        size='sm'
+                        size='sm',
+                        className='mb-2 me-2'
                     ),
-                    html.Small("Click a point to highlight", className="text-muted d-block mt-1")
+                    dbc.Button(
+                        "Show Pareto Front", 
+                        id='pareto-toggle-btn', 
+                        color='success', 
+                        outline=True, 
+                        size='sm',
+                        className='mb-2'
+                    ),
+                    html.Small("Click a point to highlight | Toggle Pareto front visualization", className="text-muted d-block mt-1")
                 ])
             ])
         ]),

@@ -10,7 +10,7 @@ from config.settings import (
     DEFAULT_PLOT_WIDTH, DEFAULT_PLOT_HEIGHT, MARKER_SIZE, MARKER_LINE_WIDTH,
     BASE_FONT_SIZE, MIN_FONT_SIZE, MAX_FONT_SIZE, BASE_MARGIN, MAX_MARGIN,
     HIGHLIGHT_COLOR, HIGHLIGHT_SIZE_MULTIPLIER, HIGHLIGHT_OPACITY, 
-    NON_HIGHLIGHT_OPACITY, HIGHLIGHT_LINE_WIDTH, COLOR_SCALES
+    NON_HIGHLIGHT_OPACITY, HIGHLIGHT_LINE_WIDTH, COLOR_SCALES, HIGHLIGHT_SYMBOL
 )
 import math
 
@@ -99,7 +99,7 @@ def calculate_margin_size(num_vars: int, font_size: int) -> int:
     return min(margin, MAX_MARGIN)
 
 
-def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None):
+def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None, pareto_indices: List[int] = None):
     """
     Create a scatter plot matrix (SPLOM) with color-coded samples and auto-sized labels.
     Uses plotly.graph_objects for better control of marker properties and highlighting.
@@ -109,6 +109,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
         dimensions: List of dimension dictionaries with 'label' and 'values' keys
         num_vars: Number of variables for title
         highlighted_iteration: Optional iteration to highlight across all subplots
+        pareto_indices: Optional list of indices for Pareto front points
 
     Returns:
         Plotly figure with SPLOM
@@ -179,7 +180,46 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
     
     traces = [splom_trace]
     
-    # Add highlighted trace on top if highlighting is needed
+    # Add Pareto front trace first (so it's drawn before highlights)
+    if pareto_indices is not None and len(pareto_indices) > 0:
+        # Create dimensions for Pareto front points
+        pareto_dimensions = []
+        for dim_dict in truncated_dimensions:
+            dim_label = dim_dict['label']
+            dim_values = dim_dict['values']
+            
+            # Extract values for Pareto front points
+            pareto_values = [dim_values[i] for i in pareto_indices if i < len(dim_values)]
+            
+            pareto_dimensions.append(dict(
+                label=dim_label,
+                values=pareto_values
+            ))
+        
+        # Create Pareto front trace (rendered before highlights)
+        pareto_trace = go.Splom(
+            dimensions=pareto_dimensions,
+            text=[f"Iteration {i} (Pareto)" for i in pareto_indices],
+            marker=dict(
+                color='red',
+                size=MARKER_SIZE * 1.2,  # Slightly larger than normal
+                symbol='diamond',  # Different symbol for Pareto points
+                line=dict(
+                    color='darkred',
+                    width=2
+                ),
+                opacity=0.8
+            ),
+            diagonal_visible=True,
+            showupperhalf=True,
+            showlowerhalf=False,
+            name=f"Pareto Front ({len(pareto_indices)} points)",
+            showlegend=False
+        )
+        
+        traces.append(pareto_trace)
+
+    # Add highlighted trace LAST so it's always on top
     if highlighted_iteration is not None and highlighted_iteration < n_samples:
         # Create dimensions for highlighted point using truncated dimensions
         highlighted_dimensions = []
@@ -195,16 +235,16 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 values=[highlighted_value]  # Single value as list
             ))
         
-        # Create highlighted trace (rendered on top)
+        # Create highlighted trace (rendered on top of everything)
         highlighted_trace = go.Splom(
             dimensions=highlighted_dimensions,
             text=[f"Iteration {highlighted_iteration} (Selected)"],
             marker=dict(
                 color=HIGHLIGHT_COLOR,
                 size=MARKER_SIZE * HIGHLIGHT_SIZE_MULTIPLIER,
-                symbol='circle',
+                symbol=HIGHLIGHT_SYMBOL,  # Use star for high visibility
                 line=dict(
-                    color=HIGHLIGHT_COLOR,
+                    color='black',  # Black border for maximum contrast
                     width=HIGHLIGHT_LINE_WIDTH
                 ),
                 opacity=HIGHLIGHT_OPACITY

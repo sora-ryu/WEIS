@@ -23,11 +23,12 @@ BASE_MARGIN = 60
 MAX_MARGIN = 120
 
 # Highlighting configuration
-HIGHLIGHT_COLOR = 'red'
-HIGHLIGHT_SIZE_MULTIPLIER = 2
+HIGHLIGHT_COLOR = '#00FF41'  # Bright green - high contrast against red Pareto points
+HIGHLIGHT_SIZE_MULTIPLIER = 3  # Larger size for better visibility
 HIGHLIGHT_OPACITY = 1.0
 NON_HIGHLIGHT_OPACITY = 0.4
-HIGHLIGHT_LINE_WIDTH = 3
+HIGHLIGHT_LINE_WIDTH = 4  # Thicker border
+HIGHLIGHT_SYMBOL = 'star'  # Distinctive shape
 
 # Color schemes
 COLOR_SCALES = {

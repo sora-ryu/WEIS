@@ -325,3 +325,45 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str]) -> t
     simplified_df['sample_id'] = range(len(simplified_df))
     
     return simplified_df, dimensions
+
+
+def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
+        """Find Pareto front samples algorithmically"""
+        if not objectives or df.empty:
+            return []
+        
+        pareto_indices = []
+        n_samples = len(df)
+        
+        # Extract objective values
+        obj_values = df[objectives].values
+        
+        # Find non-dominated solutions
+        for i in range(n_samples):
+            is_dominated = False
+            
+            for j in range(n_samples):
+                if i == j:
+                    continue
+                
+                # Check if j dominates i (assuming minimization)
+                better_in_all = True
+                better_in_at_least_one = False
+                
+                for k in range(len(objectives)):
+                    if obj_values[j, k] > obj_values[i, k]:
+                        better_in_all = False
+                        break
+                    elif obj_values[j, k] < obj_values[i, k]:
+                        better_in_at_least_one = True
+                
+                if better_in_all and better_in_at_least_one:
+                    is_dominated = True
+                    break
+            
+            if not is_dominated:
+                pareto_indices.append(i)
+        
+        print(f"Found {len(pareto_indices)} Pareto optimal solutions algorithmically")
+        
+        return pareto_indices

@@ -152,7 +152,8 @@ def create_data_stores() -> list:
         dcc.Store(id='csv-df'),
         dcc.Store(id='yaml-df'),
         dcc.Store(id='selected-channels', data=[]),
-        dcc.Store(id='selected-iteration', data="")  # Store for selected iteration (highlight)
+        dcc.Store(id='selected-iteration', data=""),  # Store for selected iteration (highlight)
+        dcc.Store(id='pareto-front-enabled', data=False)  # Store for Pareto front toggle
     ]
 
 

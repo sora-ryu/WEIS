@@ -5,7 +5,7 @@ import io
 import pandas as pd
 from dash import Input, Output, State, callback, callback_context
 
-from utils.data_processing import prepare_dataframe_for_splom
+from utils.data_processing import prepare_dataframe_for_splom, find_pareto_front
 from utils.plot_helpers import (
     create_splom_figure, create_empty_figure_with_message, 
     create_table_figure
@@ -15,13 +15,34 @@ from utils.plot_helpers import (
 def register_visualization_callbacks(app):
     """Register all visualization related callbacks."""
     
+    @callback(Output('pareto-front-enabled', 'data'),
+              Input('pareto-toggle-btn', 'n_clicks'),
+              State('pareto-front-enabled', 'data'),
+              prevent_initial_call=True)
+    def toggle_pareto_front(n_clicks, current_state):
+        """Toggle Pareto front visualization on/off."""
+        if n_clicks is None:
+            return current_state
+        return not current_state
+    
+    @callback(Output('pareto-toggle-btn', 'children'),
+              Input('pareto-front-enabled', 'data'))
+    def update_pareto_button_text(pareto_enabled):
+        """Update button text based on Pareto front state."""
+        if pareto_enabled:
+            return "Hide Pareto Front"
+        else:
+            return "Show Pareto Front"
+    
     @callback([Output('splom', 'figure'),
                Output('selected-iteration', 'data')],
               [Input('csv-df', 'data'),
                Input('selected-channels', 'data'),
                Input('clear-highlight-btn', 'n_clicks'),
-               Input('splom', 'clickData')])
-    def update_splom(csv_data, selected_channels, clear_clicks, click_data):
+               Input('splom', 'clickData'),
+               Input('pareto-front-enabled', 'data')],
+              State('yaml-df', 'data'))
+    def update_splom(csv_data, selected_channels, clear_clicks, click_data, pareto_enabled, yaml_data):
         """Update the scatter plot matrix based on selected channels and highlighted sample."""
 
         if csv_data is None:
@@ -71,12 +92,30 @@ def register_visualization_callbacks(app):
 
         simplified_df, dimensions = result
 
-        # Create and return the SPLOM figure with highlighting
+        # Calculate Pareto front if enabled
+        pareto_indices = None
+        if pareto_enabled and yaml_data is not None:
+            try:
+                # Get objectives from YAML data
+                objectives = yaml_data.get('objectives', [])
+                
+                if len(objectives) >= 2:
+                    print(f"DEBUG: Calculating Pareto front for objectives: {objectives}")
+                    pareto_indices = find_pareto_front(objectives, df)
+                    print(f"DEBUG: Found {len(pareto_indices) if pareto_indices else 0} Pareto optimal points")
+                else:
+                    print(f"DEBUG: Not enough objectives ({len(objectives)}) for Pareto front calculation")
+            except Exception as e:
+                print(f"DEBUG: Error calculating Pareto front: {e}")
+                pareto_indices = None
+
+        # Create and return the SPLOM figure with highlighting and Pareto front
         return create_splom_figure(
             simplified_df, 
             dimensions, 
             len(all_selected_vars),
-            highlighted_iteration
+            highlighted_iteration,
+            pareto_indices
         ), highlighted_iteration
 
 
