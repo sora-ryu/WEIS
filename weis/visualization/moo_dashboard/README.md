@@ -20,8 +20,8 @@ python main.py      # Make sure run this command at moo_dashboard directory
         - Show dropdown list when array-value channel is clicked (combined single plot vs separated plots). Either way, show both min and max where constraints bounds (min < min, max > max) are already checked
     - [ ] Design variables:
         - Different approach would be needed. Work on this after getting new dataset from Dan
-- [ ] Show Pareto Fronts (Higher priority)
-    - [ ] Calculate from scratch with checking constraints bounds
+- [X] Show Pareto Fronts (Higher priority)
+    - [X] Calculate from scratch
 - [ ] Download interactive version of html
     - [ ] I think only graphs or tables should be exportable, not the entire page.
 
@@ -31,7 +31,8 @@ python main.py      # Make sure run this command at moo_dashboard directory
 
 - Debug
     - [X] SPLOM initialization doesn't work properly, where the first Objective channel is automatically selected by default.
-
+    - [X] Not AEP showing on SPLOM due to extremely small variance -- added special handling for this (but not necessary for general)
+    - [ ] Layout to leverage full screen width and remove empty spaces
 ## Food for Thoughts
 - How to work on 3+ objectives?
 - 3D+ Pareto Fronts?

@@ -1,7 +1,6 @@
 """
 Plot helpers and formatting utilities
 """
-import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
@@ -12,7 +11,6 @@ from config.settings import (
     HIGHLIGHT_COLOR, HIGHLIGHT_SIZE_MULTIPLIER, HIGHLIGHT_OPACITY, 
     NON_HIGHLIGHT_OPACITY, HIGHLIGHT_LINE_WIDTH, COLOR_SCALES, HIGHLIGHT_SYMBOL
 )
-import math
 
 
 def calculate_font_size(num_vars: int, plot_width: int = DEFAULT_PLOT_WIDTH) -> int:
@@ -128,13 +126,75 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
     dimension_labels = [dim['label'] for dim in dimensions]
     truncated_labels = truncate_labels(dimension_labels, max_label_length)
     
-    # Create updated dimensions with truncated labels
+    # Debug: Check for problematic dimensions (e.g., all same values)
+    print(f"DEBUG SPLOM: Creating SPLOM with {len(dimensions)} dimensions")
+    for i, dim in enumerate(dimensions):
+        values = np.array(dim['values'])
+        values_clean = values[~np.isnan(values)]  # Remove NaN values for stats
+        
+        if len(values_clean) > 0:
+            val_min = np.min(values_clean)
+            val_max = np.max(values_clean)
+            val_range = val_max - val_min
+            val_std = np.std(values_clean)
+            
+            print(f"DEBUG SPLOM: Dimension '{dim['label']}':")
+            print(f"  - Values count: {len(values_clean)}/{len(values)}")
+            print(f"  - Range: {val_min:.6f} to {val_max:.6f} (range: {val_range:.6f})")
+            print(f"  - Std dev: {val_std:.6f}")
+            
+            # Check for problematic cases
+            if val_range == 0:
+                print(f"  - WARNING: All values are identical ({val_min})")
+            elif val_range < 1e-10:
+                print(f"  - WARNING: Very small range, points may appear as a line")
+            elif val_std < 1e-10:
+                print(f"  - WARNING: Very low variance, points may cluster tightly")
+        else:
+            print(f"DEBUG SPLOM: Dimension '{dim['label']}' has no valid values (all NaN)")
+    
+    # Create updated dimensions with truncated labels and handle zero variance
     truncated_dimensions = []
     for i, dim in enumerate(dimensions):
-        truncated_dimensions.append({
-            'label': truncated_labels[i],
-            'values': dim['values']
-        })
+        values = np.array(dim['values'])
+        values_clean = values[~np.isnan(values)]
+        
+        # Check if all values are identical or very close
+        # NOTE that this is only for AEP values which has very small variance.. Could be deleted later.
+        if len(values_clean) > 0:
+            val_min = np.min(values_clean)
+            val_max = np.max(values_clean) 
+            val_range = val_max - val_min
+            
+            # Handle dimensions with no variance by adding deterministic jitter
+            if val_range == 0:
+                print(f"DEBUG: Adding deterministic spread to '{dim['label']}' (all values = {val_min})")
+                # Create a small deterministic spread based on sample index
+                jitter_scale = abs(val_min) * 1e-6 if val_min != 0 else 1e-6
+                # Simple linear spread: alternate positive/negative small offsets
+                n_samples = len(values)
+                spread = np.array([(i - n_samples/2) * jitter_scale / n_samples for i in range(n_samples)])
+                modified_values = values + spread
+            elif val_range < abs(val_min) * 1e-10 and val_min != 0:
+                print(f"DEBUG: Adding deterministic spread to '{dim['label']}' (very small range)")
+                # Use deterministic spread for very tight ranges
+                jitter_scale = abs(val_min) * 1e-6
+                n_samples = len(values)
+                spread = np.array([(i - n_samples/2) * jitter_scale / n_samples for i in range(n_samples)])
+                modified_values = values + spread
+            else:
+                modified_values = values
+                
+            truncated_dimensions.append({
+                'label': truncated_labels[i],
+                'values': modified_values
+            })
+        else:
+            # No valid values, keep as is
+            truncated_dimensions.append({
+                'label': truncated_labels[i],
+                'values': dim['values']
+            })
     
     # Prepare data for SPLOM
     n_vars = num_vars
@@ -196,7 +256,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 values=pareto_values
             ))
         
-        # Create Pareto front trace (rendered before highlights)
+        # Create Pareto front trace
         pareto_trace = go.Splom(
             dimensions=pareto_dimensions,
             text=[f"Iteration {i} (Pareto)" for i in pareto_indices],
@@ -219,7 +279,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
         
         traces.append(pareto_trace)
 
-    # Add highlighted trace LAST so it's always on top
+    # Add highlighted trace
     if highlighted_iteration is not None and highlighted_iteration < n_samples:
         # Create dimensions for highlighted point using truncated dimensions
         highlighted_dimensions = []
@@ -235,7 +295,6 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 values=[highlighted_value]  # Single value as list
             ))
         
-        # Create highlighted trace (rendered on top of everything)
         highlighted_trace = go.Splom(
             dimensions=highlighted_dimensions,
             text=[f"Iteration {highlighted_iteration} (Selected)"],
