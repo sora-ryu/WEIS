@@ -30,11 +30,36 @@ def detect_array_columns(csv_data):
         
         for col in df.columns:
             # Check if any value in the column is array-like
-            sample_values = df[col].dropna().head(1)  # Check first non-null value
+            sample_values = df[col].dropna().head(3)  # Check first 3 non-null values
             for val in sample_values:
-                if type(val) == str:        # Only array columns are stored as strings. Others are int/float/bool.
+                is_array = False
+                
+                # Check if it's a string that could represent an array
+                if isinstance(val, str):
+                    try:
+                        # Try to parse as a Python literal
+                        parsed = ast.literal_eval(val)
+                        if isinstance(parsed, (list, tuple)) and len(parsed) > 1:
+                            is_array = True
+                    except (ValueError, SyntaxError):
+                        # Check for numpy array string format like '[0. 0. 0. 0. 0. 0. 0.]'
+                        val_clean = val.strip()
+                        if val_clean.startswith('[') and val_clean.endswith(']'):
+                            inner_str = val_clean[1:-1].strip()
+                            if inner_str and len(inner_str.split()) > 1:
+                                # Multiple space-separated values indicate an array
+                                is_array = True
+                
+                # Check if it's already a list/array
+                elif isinstance(val, (list, tuple, np.ndarray)) and len(val) > 1:
+                    is_array = True
+                
+                if is_array:
                     array_columns.add(col)
+                    print(f"DEBUG: Detected array column '{col}' with sample value: {val}")
+                    break  # Found array in this column, move to next
 
+        print(f"DEBUG: Final detected array columns: {array_columns}")
         return array_columns
     except Exception as e:
         print(f"Error detecting array columns: {e}")
@@ -90,10 +115,11 @@ def register_channel_selection_callbacks(app):
 
     @callback(Output('selected-channels', 'data'),
               [Input({'type': 'channel-btn', 'index': ALL}, 'n_clicks'),
-               Input({'type': 'array-option-btn', 'index': ALL, 'var': ALL}, 'n_clicks')],
+               Input({'type': 'array-option-btn', 'index': ALL, 'var': ALL}, 'n_clicks'),
+               Input({'type': 'array-toggle-btn', 'index': ALL}, 'n_clicks')],
               State('selected-channels', 'data'),
               prevent_initial_call=True)
-    def handle_channels_selection(channel_clicks, array_option_clicks, current_selected):
+    def handle_channels_selection(channel_clicks, array_option_clicks, array_toggle_clicks, current_selected):
         """Handle channel button clicks and array option button clicks for multi-select functionality."""
         ctx = callback_context
         if not ctx.triggered:
@@ -105,14 +131,13 @@ def register_channel_selection_callbacks(app):
         # This prevents the callback from firing on initial load when n_clicks are None
         total_channel_clicks = sum(click or 0 for click in channel_clicks)
         total_array_clicks = sum(click or 0 for click in array_option_clicks)
-        print(f"DEBUG: Total channel clicks: {total_channel_clicks}, Total array clicks: {total_array_clicks}")
+        total_toggle_clicks = sum(click or 0 for click in array_toggle_clicks)
         
-        if total_channel_clicks == 0 and total_array_clicks == 0:
+        if total_channel_clicks == 0 and total_array_clicks == 0 and total_toggle_clicks == 0:
             return current_selected or []
         
         try:
             trigger_info = ctx.triggered_id
-            print(f"DEBUG: Trigger info: {trigger_info}")
             
             if  trigger_info['type'] == 'channel-btn':
                 # Handle regular channel button clicks
@@ -144,6 +169,20 @@ def register_channel_selection_callbacks(app):
                 elif option == 'combine':
                     current_selected.append(f"{var_name}_combined")
                     print(f"DEBUG: Added combined: {var_name}_combined")
+            elif trigger_info['type'] == 'array-toggle-btn':
+                # Handle array toggle button clicks (remove all selections for this array)
+                var_name = trigger_info['index']
+                print(f"DEBUG: Array toggle clicked: {var_name}")
+                
+                # Remove any existing entries for this variable
+                old_count = len(current_selected)
+                current_selected = [sel for sel in current_selected 
+                                  if not (sel.startswith(f"{var_name}_") or sel == var_name)]
+                
+                if len(current_selected) < old_count:
+                    print(f"DEBUG: Removed all selections for {var_name}")
+                else:
+                    print(f"DEBUG: No selections to remove for {var_name}")
             
             print(f"DEBUG: Current selected after: {current_selected}")
             return current_selected
