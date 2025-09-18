@@ -23,7 +23,10 @@ python main.py      # Make sure run this command at moo_dashboard directory
 - [X] Show Pareto Fronts (Higher priority)
     - [X] Calculate from scratch
 - [ ] Download interactive version of html
-    - [ ] I think only graphs or tables should be exportable, not the entire page.
+    - I think only graphs or tables should be exportable, not the entire page.
+- [ ] Add toggle button to show or not show diagonal line in SPLOM
+- [ ] Add testing script to check if app works
+- [ ] Submit PR when it's ready
 
 - How to calculate Pareto Fronts with 3 objective functions?
     - Should be okay with Cory's function
