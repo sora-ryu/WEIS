@@ -60,8 +60,7 @@ def create_main_layout() -> html.Div:
                         outline=True, 
                         size='sm',
                         className='mb-2'
-                    ),
-                    html.Small("Click a point to highlight | Toggle Pareto front visualization", className="text-muted d-block mt-1")
+                    )
                 ])
             ])
         ]),
@@ -77,14 +76,18 @@ def create_main_layout() -> html.Div:
         
         # Main content - Channel panel (1/3) + Plot (2/3)
         dbc.Row([
-            dbc.Col(cfg_graph_input, width=4),  # 1/3 of width
+            dbc.Col([
+                # From same column, stack vertically.
+                dbc.Row(cfg_graph_input),  # 1/3 of width
+                dbc.Row(dcc.Graph(id='data-table'))
+            ], width=4),
             dbc.Col(dcc.Graph(id='splom'), width=8)  # 2/3 of width
         ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
 
-        # Data Table - Full width
-        dbc.Row([
-            dbc.Col(dcc.Graph(id='data-table'), width=12)
-        ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
+        # # Data Table - Full width
+        # dbc.Row([
+        #     dbc.Col(dcc.Graph(id='data-table'), width=12)
+        # ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
         
         # Data stores
         *create_data_stores()

@@ -222,11 +222,11 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
             dimensions=pareto_dimensions,
             text=[f"Iteration {i} (Pareto)" for i in pareto_indices],
             marker=dict(
-                color='red',
-                size=MARKER_SIZE * 1.2,  # Slightly larger than normal
+                color='#FF2400',
+                size=MARKER_SIZE * 3.0,  # Slightly larger than normal
                 symbol='diamond',  # Different symbol for Pareto points
                 line=dict(
-                    color='darkred',
+                    color='black',
                     width=2
                 ),
                 opacity=0.8
