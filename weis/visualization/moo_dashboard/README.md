@@ -25,6 +25,7 @@ python main.py      # Make sure run this command at moo_dashboard directory
 - [ ] Download interactive version of html
     - I think only graphs or tables should be exportable, not the entire page.
 - [ ] Add toggle button to show or not show diagonal line in SPLOM
+- [ ] Add objective options (min vs max) next to buttons
 - [ ] Add testing script to check if app works
 - [ ] Submit PR when it's ready
 
