@@ -234,7 +234,6 @@ class FASTLoadCases(ExplicitComponent):
             self.add_input('theta',             val=np.zeros(n_span), units='deg', desc='twist at airfoil locations')
             self.add_input('rthick',            val=np.zeros(n_span), desc='relative thickness of airfoil distribution')
             self.add_input('ac',                val=np.zeros(n_span), desc='aerodynamic center of airfoil distribution')
-            self.add_input('pitch_axis',        val=np.zeros(n_span), desc='1D array of the chordwise position of the pitch axis (0-LE, 1-TE), defined along blade span.')
             self.add_input('Rhub',              val=0.0, units='m', desc='dimensional radius of hub')
             self.add_input('airfoils_cl',       val=np.zeros((n_span, n_aoa, n_Re)), desc='lift coefficients, spanwise')
             self.add_input('airfoils_cd',       val=np.zeros((n_span, n_aoa, n_Re)), desc='drag coefficients, spanwise')
