@@ -128,10 +128,16 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
     Args:
         df: Source DataFrame
         selected_vars: List of selected variable names (may include _min, _max suffixes)
+        yaml_data: YAML data containing variable categories
         
     Returns:
-        Tuple of (simplified_df, dimensions)
+        Tuple of (simplified_df, dimensions, variable_categories)
     """
+    
+    # Extract categories from YAML
+    objectives = list(yaml_data.get('objectives', {}).keys()) if yaml_data else []
+    constraints = list(yaml_data.get('constraints', {}).keys()) if yaml_data else []
+    design_vars = list(yaml_data.get('design_vars', {}).keys()) if yaml_data else []
     
     # Parse selected variables - array variables are automatically processed as separate
     processed_vars = {}
@@ -153,11 +159,22 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
             available_vars.extend(config['vars'])
     
     if not available_vars:
-        return None, []
+        return None, [], {}
     
     # Create simplified DataFrame
     simplified_df = pd.DataFrame()
     dimensions = []
+    variable_categories = {}  # Map simplified name to category
+    
+    # Helper function to determine category
+    def get_category(var_name):
+        if var_name in objectives:
+            return 'objectives'
+        elif var_name in constraints:
+            return 'constraints'
+        elif var_name in design_vars:
+            return 'design_vars'
+        return None
     
     for base_var, config in processed_vars.items():
         if base_var not in df.columns:
@@ -171,6 +188,7 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
                 label=simplified_name,
                 values=df[base_var].values
             ))
+            variable_categories[simplified_name] = get_category(base_var)
             
         elif config['type'] == 'array':
             # Array variable - separate min and max
@@ -247,15 +265,20 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
             simplified_df[min_name] = min_values
             simplified_df[max_name] = max_values
             
+            category = get_category(base_var)
+            
             dimensions.extend([
                 dict(label=min_name, values=min_values),
                 dict(label=max_name, values=max_values)
             ])
+            
+            variable_categories[min_name] = category
+            variable_categories[max_name] = category
     
     # Add sample_id
     simplified_df['sample_id'] = range(len(simplified_df))
     
-    return simplified_df, dimensions
+    return simplified_df, dimensions, variable_categories
 
 
 def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:

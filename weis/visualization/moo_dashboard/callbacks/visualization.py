@@ -90,7 +90,7 @@ def register_visualization_callbacks(app):
                 'Click variable buttons to select channels for SPLOM', 'blue'
             ), highlighted_iteration
 
-        simplified_df, dimensions = result
+        simplified_df, dimensions, variable_categories = result
 
         # Calculate Pareto front if enabled
         pareto_indices = None
@@ -115,15 +115,17 @@ def register_visualization_callbacks(app):
             dimensions, 
             len(all_selected_vars),
             highlighted_iteration,
-            pareto_indices
+            pareto_indices,
+            variable_categories
         ), highlighted_iteration
 
 
 def register_table_callbacks(app):
     @callback(Output('data-table', 'figure'),
               [Input('csv-df', 'data'),
-               Input('selected-iteration', 'data')])
-    def update_table(csv_data, selected_iteration):
+               Input('selected-iteration', 'data'),
+               Input('yaml-df', 'data')])
+    def update_table(csv_data, selected_iteration, yaml_data):
         """Update the data table based on selected data point from SPLOM with enhanced statistics"""
         if selected_iteration is None:
             return create_empty_figure_with_message(
@@ -138,6 +140,16 @@ def register_table_callbacks(app):
         
         print(f'Selected iteration: {selected_iteration}')
         print('Filtered DataFrame\n', filtered_df)
+        
+        # Extract categories from YAML
+        variable_categories = {}
+        if yaml_data:
+            for var in yaml_data.get('objectives', {}).keys():
+                variable_categories[var] = 'objectives'
+            for var in yaml_data.get('constraints', {}).keys():
+                variable_categories[var] = 'constraints'
+            for var in yaml_data.get('design_vars', {}).keys():
+                variable_categories[var] = 'design_vars'
 
         # Use the enhanced table with statistical comparisons
-        return create_table_figure(filtered_df)
+        return create_table_figure(filtered_df, variable_categories)

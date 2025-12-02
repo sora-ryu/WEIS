@@ -36,7 +36,7 @@ python main.py      # Make sure run this command at moo_dashboard directory
 - Debug
     - [X] SPLOM initialization doesn't work properly, where the first Objective channel is automatically selected by default.
     - [X] Not AEP showing on SPLOM due to extremely small variance -- added special handling for this (but not necessary for general)
-    - [ ] Layout to leverage full screen width and remove empty spaces
+    - [X] Layout to leverage full screen width and remove empty spaces
 
 ## Food for Thoughts
 - How to work on 3+ objectives?

@@ -97,7 +97,7 @@ def calculate_margin_size(num_vars: int, font_size: int) -> int:
     return min(margin, MAX_MARGIN)
 
 
-def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None, pareto_indices: List[int] = None):
+def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None, pareto_indices: List[int] = None, variable_categories: Dict[str, str] = None):
     """
     Create a scatter plot matrix (SPLOM) with color-coded samples and auto-sized labels.
     Uses plotly.graph_objects for better control of marker properties and highlighting.
@@ -108,10 +108,18 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
         num_vars: Number of variables for title
         highlighted_iteration: Optional iteration to highlight across all subplots
         pareto_indices: Optional list of indices for Pareto front points
+        variable_categories: Dict mapping variable names to categories (objectives, constraints, design_vars)
 
     Returns:
         Plotly figure with SPLOM
     """
+    
+    # Define category colors for axis labels
+    category_colors = {
+        'objectives': '#0d6efd',      # Bootstrap primary blue
+        'constraints': '#fd7e14',     # Bootstrap warning orange
+        'design_vars': '#198754',     # Bootstrap success green
+    }
     if df.empty or not dimensions:
         return go.Figure()
 
@@ -300,7 +308,9 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
         # Configure font sizes for all text elements
         font=dict(size=font_size),
         # Adjust axis label properties
-        showlegend=False
+        showlegend=False,
+        dragmode='select',
+        hovermode='closest'
     )
     
     return fig
@@ -338,16 +348,24 @@ def create_empty_figure_with_message(message: str, message_color: str = 'gray') 
     }
 
 
-def create_table_figure(data: pd.DataFrame) -> Dict:
+def create_table_figure(data: pd.DataFrame, variable_categories: Dict[str, str] = None) -> Dict:
     """
-    Create a table figure from a DataFrame with index (which is prior cols)
+    Create a table figure from a DataFrame with index (which is prior cols) and color-coded variable names.
 
     Args:
         data: DataFrame to display in the table
+        variable_categories: Dict mapping variable names to categories
         
     Returns:
         Plotly figure dictionary
     """
+    # Define category colors
+    category_colors = {
+        'objectives': '#0d6efd',
+        'constraints': '#fd7e14',
+        'design_vars': '#198754',
+    }
+    
     # Format numeric values for better display
     formatted_data = data.copy()
     
@@ -362,8 +380,17 @@ def create_table_figure(data: pd.DataFrame) -> Dict:
     num_rows = len(formatted_data)
     row_colors = ['#f8f9fa' if i % 2 == 0 else '#ffffff' for i in range(num_rows)]
     
+    # Color code the index (variable names) based on categories
+    index_colors = []
+    for var_name in formatted_data.index:
+        category = variable_categories.get(var_name) if variable_categories else None
+        if category and category in category_colors:
+            index_colors.append(category_colors[category])
+        else:
+            index_colors.append('#2c3e50')  # Default color
+    
     # Prepare header values with better formatting
-    header_values = ['Iteration'] + [f"<b>{col}</b>" for col in formatted_data.columns]
+    header_values = ['Variable'] + [f"<b>{col}</b>" for col in formatted_data.columns]
     
     # Prepare cell values with index
     cell_values = [formatted_data.index.tolist()] + [formatted_data[col].tolist() for col in formatted_data.columns]
@@ -392,7 +419,7 @@ def create_table_figure(data: pd.DataFrame) -> Dict:
                     },
                     'align': ['left'] * (len(formatted_data.columns) + 1),
                     'font': {
-                        'color': ['#2c3e50'] * (len(formatted_data.columns) + 1),
+                        'color': [index_colors] + [['#2c3e50'] * num_rows] * len(formatted_data.columns),  # Colored variable names
                         'size': BASE_FONT_SIZE,
                     },
                     'height': 35,
