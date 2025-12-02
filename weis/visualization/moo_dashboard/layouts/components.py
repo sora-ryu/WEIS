@@ -19,14 +19,18 @@ def create_file_input_row(file_type: str, file_id_prefix: str, tooltip_text: str
         Dash Bootstrap Components Row
     """
     return dbc.Row([
-        dbc.Label(file_type, width=1),
+        dbc.Col(
+            dbc.Label(file_type, className="mb-0"), 
+            width=1, 
+            className="d-flex align-items-center"  # Vertically center label
+        ),
         dbc.Col(
             dbc.Input(
                 id=f'{file_id_prefix}-file-path',
                 type='text',
                 placeholder='Enter the absolute path for file to import'
             ),
-            width=6
+            width=True  # Takes remaining space
         ),
         dbc.Col(
             dcc.Upload(
@@ -34,14 +38,14 @@ def create_file_input_row(file_type: str, file_id_prefix: str, tooltip_text: str
                 children=dbc.Button('Browse', n_clicks=0, color='secondary', className='me-1'),
                 multiple=False
             ),
-            width='auto'
+            width="auto"  # Only as wide as needed
         ),
         dbc.Col(
             dbc.Button('Load', id=f'{file_id_prefix}-load-btn', n_clicks=0, color='primary'),
-            width='auto'
+            width="auto"  # Only as wide as needed
         ),
         dbc.Tooltip(tooltip_text, target=f'{file_id_prefix}-load-btn'),
-    ], className="mb-3")
+    ], className="mb-3 g-2")  # g-2 adds small gutters between columns
 
 
 def create_button_group(variables: list, category_name: str, color: str, selected_vars: list, array_columns: set = None) -> list:

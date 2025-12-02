@@ -25,16 +25,15 @@ def create_main_layout() -> html.Div:
     )
     
     # Configuration panel
-    cfg_graph_input = dbc.Row([
-        dbc.Col([
-            dbc.Label("Channels to display:", className="fw-bold mb-2"),
+    cfg_graph_input = dbc.Col([
+            # dbc.Label("Channels to display:", className="fw-bold mb-2"),
             html.Div(
                 id='channels', 
                 children=[
                     dbc.Alert("Load YAML file to see variable options", color="info", className="text-center")
                 ],
                 style={
-                    'maxHeight': '70vh',
+                    'maxHeight': 'calc(100% - 100px)',
                     'overflowY': 'auto',
                     'padding': '10px',
                     'border': '1px solid #dee2e6',
@@ -63,34 +62,80 @@ def create_main_layout() -> html.Div:
                     )
                 ])
             ])
-        ]),
-    ])
+        ], style={'height': '100%'})
     
     # Simple layout with full width
     layout = html.Div([
         # File Loaders - Full width
         dbc.Row([
             dbc.Col(csv_file_input, width=12),
-            dbc.Col(yaml_file_input, width=12)
-        ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
-        
-        # Main content - Channel panel (1/3) + Plot (2/3)
+        ], className="g-0"),
         dbc.Row([
-            dbc.Col([
-                # From same column, stack vertically.
-                dbc.Row(cfg_graph_input),  # 1/3 of width
-                dbc.Row(dcc.Graph(id='data-table'))
-            ], width=4),
-            dbc.Col(dcc.Graph(id='splom'), width=8)  # 2/3 of width
-        ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
-
-        # # Data Table - Full width
-        # dbc.Row([
-        #     dbc.Col(dcc.Graph(id='data-table'), width=12)
-        # ], className="mt-4", style={'margin': '0', 'padding': '0 15px'}),
+            dbc.Col(yaml_file_input, width=12),
+        ], className="g-0 mb-3"),
+        
+        # Main content - 2x2 grid layout
+        # Left column: cfg_graph_input on top, data-table on bottom
+        # Right column: splom spanning both rows (square aspect ratio)
+        html.Div([
+            # Left column with two stacked components
+            html.Div([
+                # Top left: cfg_graph_input
+                html.Div(
+                    cfg_graph_input,
+                    style={
+                        'height': '50%', 
+                        'overflowY': 'auto',
+                        'overflowX': 'hidden'
+                    }
+                ),
+                # Bottom left: data-table (aligned with cfg_graph_input border)
+                html.Div(
+                    dcc.Graph(
+                        id='data-table', 
+                        style={'height': '100%'},
+                        config={'responsive': True}
+                    ),
+                    style={
+                        'height': '50%'
+                    }
+                )
+            ], style={
+                'width': '33%',
+                'height': 'calc(100vh - 200px)',  # Dynamic height based on viewport
+                'display': 'inline-block',
+                'verticalAlign': 'top',
+                'paddingRight': '10px',
+                'boxSizing': 'border-box'
+            }),
+            # Right column: splom graph spanning full height with square aspect ratio
+            html.Div(
+                dcc.Graph(
+                    id='splom', 
+                    style={'height': '100%', 'width': '100%'},
+                    config={'responsive': True}
+                ),
+                style={
+                    'width': 'calc(min(67vw - 40px, 100vh - 200px))',  # Square: min of width and height
+                    'height': 'calc(min(67vw - 40px, 100vh - 200px))',
+                    'display': 'inline-block',
+                    'verticalAlign': 'top',
+                    'maxWidth': '67%'
+                }
+            )
+        ], style={
+            'width': '100%',
+            'whiteSpace': 'nowrap'
+        }),
         
         # Data stores
         *create_data_stores()
-    ], style={'width': '100%', 'margin': '0', 'padding': '0'})
+    ], style={
+        'width': '100%',
+        'maxWidth': '100%',
+        'margin': '0',
+        'padding': '15px',
+        'boxSizing': 'border-box'
+    })
     
     return layout
