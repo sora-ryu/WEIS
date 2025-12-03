@@ -5,7 +5,7 @@ import ast
 import io
 import pandas as pd
 import numpy as np
-from dash import Input, Output, State, callback, callback_context, ALL
+from dash import Input, Output, State, callback, callback_context, ALL, html, dcc
 
 from layouts.components import create_button_group, create_no_data_alert
 from config.settings import COLOR_SCALES
@@ -99,9 +99,67 @@ def register_channel_selection_callbacks(app):
         # Create button groups for each category
         buttons = []
         if objectives:
-            buttons.extend(create_button_group(
-                objectives, "Objectives", COLOR_SCALES['objectives'], selected_channels, array_columns
-            ))
+            # Add professional objective section with sense controls
+            buttons.append(html.Div([
+                html.Div([
+                    html.H6("Objectives", className="fw-bold text-primary mb-3", style={'borderBottom': '2px solid #0d6efd', 'paddingBottom': '8px'}),
+                    
+                    # Optimization direction controls in a styled card
+                    html.Div([
+                        html.Div([
+                            html.I(className="bi bi-sliders me-2"),  # Bootstrap icon
+                            html.Span("Optimization Direction", className="fw-semibold text-secondary", style={'fontSize': '0.9em'})
+                        ], className="mb-2"),
+                        
+                        html.Div([
+                            html.Div([
+                                html.Div([
+                                    html.Label(
+                                        obj.split('.')[-1], 
+                                        className="form-label mb-1 text-dark",
+                                        style={'fontSize': '0.85em', 'fontWeight': '500'}
+                                    ),
+                                    dcc.RadioItems(
+                                        id={'type': 'obj-sense', 'index': obj},
+                                        options=[
+                                            {'label': ' Minimize', 'value': 'minimize'},
+                                            {'label': ' Maximize', 'value': 'maximize'}
+                                        ],
+                                        value='minimize',
+                                        inline=True,
+                                        className="custom-radio-group",
+                                        style={'fontSize': '0.85em'},
+                                        labelStyle={
+                                            'marginRight': '15px',
+                                            'display': 'inline-block',
+                                            'cursor': 'pointer'
+                                        },
+                                        inputStyle={'marginRight': '4px'}
+                                    )
+                                ], className="mb-2 pb-2", style={'borderBottom': '1px solid #e9ecef'} if i < len(objectives) - 1 else {})
+                                for i, obj in enumerate(objectives)
+                            ], className="d-flex flex-column")
+                        ], style={
+                            'backgroundColor': '#f8f9fa',
+                            'padding': '12px 15px',
+                            'borderRadius': '6px',
+                            'border': '1px solid #dee2e6'
+                        })
+                    ], className="mb-3"),
+                    
+                    # Objective buttons
+                    html.Div([
+                        html.Small("Select Variables:", className="text-muted mb-2 d-block", style={'fontSize': '0.85em'})
+                    ] + create_button_group(
+                        objectives, "", COLOR_SCALES['objectives'], selected_channels, array_columns
+                    )[0].children if create_button_group(objectives, "", COLOR_SCALES['objectives'], selected_channels, array_columns) else [])
+                ])
+            ], className="mb-4", style={
+                'backgroundColor': 'white',
+                'padding': '15px',
+                'borderRadius': '8px',
+                'boxShadow': '0 2px 4px rgba(0,0,0,0.05)'
+            }))
         if constraints:
             buttons.extend(create_button_group(
                 constraints, "Constraints", COLOR_SCALES['constraints'], selected_channels, array_columns
@@ -179,3 +237,24 @@ def register_channel_selection_callbacks(app):
             print(f"ERROR parsing button ID: {e}")
             print(f"ERROR trigger_info: {trigger_info}")
             return current_selected
+
+
+    @callback(Output('objective-senses', 'data'),
+              Input({'type': 'obj-sense', 'index': ALL}, 'value'),
+              State('yaml-df', 'data'),
+              prevent_initial_call=True)
+    def update_objective_senses(sense_values, yaml_data):
+        """Store the user-selected optimization direction for each objective."""
+        if not yaml_data or not sense_values:
+            return {}
+        
+        objectives = list(yaml_data['objectives'].keys())
+        
+        # Create dictionary mapping objective names to their sense
+        objective_senses = {}
+        for i, obj in enumerate(objectives):
+            if i < len(sense_values):
+                objective_senses[obj] = sense_values[i]
+        
+        print(f"DEBUG: Updated objective senses: {objective_senses}")
+        return objective_senses

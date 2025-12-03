@@ -40,9 +40,10 @@ def register_visualization_callbacks(app):
                Input('selected-channels', 'data'),
                Input('clear-highlight-btn', 'n_clicks'),
                Input('splom', 'clickData'),
-               Input('pareto-front-enabled', 'data')],
+               Input('pareto-front-enabled', 'data'),
+               Input('objective-senses', 'data')],
               State('yaml-df', 'data'))
-    def update_splom(csv_data, selected_channels, clear_clicks, click_data, pareto_enabled, yaml_data):
+    def update_splom(csv_data, selected_channels, clear_clicks, click_data, pareto_enabled, objective_senses, yaml_data):
         """Update the scatter plot matrix based on selected channels and highlighted sample."""
 
         if csv_data is None:
@@ -97,16 +98,24 @@ def register_visualization_callbacks(app):
         if pareto_enabled and yaml_data is not None:
             try:
                 # Get objectives from YAML data
-                objectives = list(yaml_data['objectives'].keys())
+                objectives_dict = yaml_data['objectives']
+                objectives = list(objectives_dict.keys())
+                
+                # Use user-selected objective senses from UI (or default to minimize)
+                if not objective_senses:
+                    objective_senses = {obj: 'minimize' for obj in objectives}
                 
                 if len(objectives) >= 2:
                     print(f"DEBUG: Calculating Pareto front for objectives: {objectives}")
-                    pareto_indices = find_pareto_front(objectives, df)
+                    print(f"DEBUG: Objective senses (from UI): {objective_senses}")
+                    pareto_indices = find_pareto_front(objectives, df, objective_senses)
                     print(f"DEBUG: Found {len(pareto_indices) if pareto_indices else 0} Pareto optimal points")
                 else:
                     print(f"DEBUG: Not enough objectives ({len(objectives)}) for Pareto front calculation")
             except Exception as e:
                 print(f"DEBUG: Error calculating Pareto front: {e}")
+                import traceback
+                traceback.print_exc()
                 pareto_indices = None
 
         # Create and return the SPLOM figure with highlighting and Pareto front

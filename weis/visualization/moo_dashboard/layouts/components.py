@@ -50,7 +50,7 @@ def create_file_input_row(file_type: str, file_id_prefix: str, tooltip_text: str
 
 def create_button_group(variables: list, category_name: str, color: str, selected_vars: list, array_columns: set = None) -> list:
     """
-    Create a button group for variable selection.
+    Create a button group for variable selection with professional styling.
     
     Args:
         variables: List of variable names
@@ -76,43 +76,91 @@ def create_button_group(variables: list, category_name: str, color: str, selecte
                       f"{var}_min" in selected_vars or 
                       f"{var}_max" in selected_vars)
         
+        # Shorten variable name for display
+        display_name = var.split('.')[-1]
+        
         # For regular variables, create normal button
         if not is_array:
             button = dbc.Button(
-                var,
+                display_name,
                 id={'type': 'channel-btn', 'index': var},
                 color=color,
                 outline=not is_selected,
                 size='sm',
-                className='flex-shrink-0',  # Prevent button from shrinking
-                style={'marginRight': '0.25rem', 'marginBottom': '0.25rem'},
+                className='flex-shrink-0 shadow-sm',
+                style={
+                    'marginRight': '0.5rem', 
+                    'marginBottom': '0.5rem',
+                    'borderRadius': '20px',
+                    'fontWeight': '500',
+                    'fontSize': '0.85em',
+                    'padding': '0.375rem 0.75rem',
+                    'transition': 'all 0.2s ease-in-out'
+                },
                 n_clicks=0,
             )
             all_components.append(button)
         else:
             # For array variables, create button that automatically uses separate mode
-            button = dbc.Button(
-                f"{var} (min/max)",
+            button = dbc.Button([
+                html.Span(display_name, style={'marginRight': '4px'}),
+                html.Span("min/max", className="badge bg-light text-dark", style={'fontSize': '0.7em'})
+            ],
                 id={'type': 'array-channel-btn', 'index': var},
                 color=color,
                 outline=not is_selected,
                 size='sm',
-                className='flex-shrink-0',
-                style={'marginRight': '0.25rem', 'marginBottom': '0.25rem'},
+                className='flex-shrink-0 shadow-sm',
+                style={
+                    'marginRight': '0.5rem', 
+                    'marginBottom': '0.5rem',
+                    'borderRadius': '20px',
+                    'fontWeight': '500',
+                    'fontSize': '0.85em',
+                    'padding': '0.375rem 0.75rem',
+                    'transition': 'all 0.2s ease-in-out'
+                },
                 n_clicks=0,
             )
             
             all_components.append(button)
     
+    if not category_name:
+        # Return just the buttons without header (used for objectives section)
+        return [html.Div(
+            all_components,
+            className="d-flex flex-wrap gap-2"
+        )]
+    
     return [
         html.Div([
-            html.Small(category_name, className="text-muted fw-bold mb-2 d-block"),
+            html.H6(category_name, className="fw-bold mb-3", style={
+                'borderBottom': f'2px solid {_get_category_color(color)}',
+                'paddingBottom': '8px',
+                'color': _get_category_color(color)
+            }),
             html.Div(
                 all_components,
-                className="d-flex flex-wrap gap-1"  # Responsive wrapping with gap
+                className="d-flex flex-wrap gap-2"
             )
-        ], className="mb-3")
+        ], className="mb-4", style={
+            'backgroundColor': 'white',
+            'padding': '15px',
+            'borderRadius': '8px',
+            'boxShadow': '0 2px 4px rgba(0,0,0,0.05)'
+        })
     ]
+
+
+def _get_category_color(color: str) -> str:
+    """Get hex color for category styling."""
+    color_map = {
+        'primary': '#0d6efd',
+        'warning': '#fd7e14',
+        'success': '#198754',
+        'secondary': '#6c757d'
+    }
+    return color_map.get(color, '#6c757d')
 
 
 def create_data_stores() -> list:
@@ -127,7 +175,8 @@ def create_data_stores() -> list:
         dcc.Store(id='yaml-df'),
         dcc.Store(id='selected-channels', data=[]),
         dcc.Store(id='selected-iteration', data=""),  # Store for selected iteration (highlight)
-        dcc.Store(id='pareto-front-enabled', data=False)  # Store for Pareto front toggle
+        dcc.Store(id='pareto-front-enabled', data=False),  # Store for Pareto front toggle
+        dcc.Store(id='objective-senses', data={})  # Store for objective optimization directions
     ]
 
 

@@ -239,13 +239,28 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
                     
                     # Ensure we have a valid numeric array
                     if len(arr) > 0 and not np.isnan(arr).all():
-                        # Sanity check if min/max values are within constraints
+                        # Extract min/max values
                         min_val = float(np.nanmin(arr))
                         max_val = float(np.nanmax(arr))
                         
-                        if min_val > yaml_data['constraints'][base_var]['lower'] and min_val < yaml_data['constraints'][base_var]['upper']:
+                        # Check if values are within constraints (if available)
+                        if yaml_data and 'constraints' in yaml_data and base_var in yaml_data['constraints']:
+                            lower = yaml_data['constraints'][base_var].get('lower', -np.inf)
+                            upper = yaml_data['constraints'][base_var].get('upper', np.inf)
+                            
+                            # Only use values within bounds, otherwise use NaN
+                            if lower <= min_val <= upper:
+                                min_values.append(min_val)
+                            else:
+                                min_values.append(np.nan)
+                                
+                            if lower <= max_val <= upper:
+                                max_values.append(max_val)
+                            else:
+                                max_values.append(np.nan)
+                        else:
+                            # No constraints, use values as-is
                             min_values.append(min_val)
-                        if max_val > yaml_data['constraints'][base_var]['lower'] and max_val < yaml_data['constraints'][base_var]['upper']:
                             max_values.append(max_val)
                     else:
                         # If all values are NaN, append NaN
@@ -281,8 +296,19 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
     return simplified_df, dimensions, variable_categories
 
 
-def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
-        """Find Pareto front samples algorithmically"""
+def find_pareto_front(objectives: List[str], df: pd.DataFrame, objective_senses: Dict[str, str] = None) -> List[int]:
+        """
+        Find Pareto front samples algorithmically with support for mixed minimize/maximize objectives.
+        
+        Args:
+            objectives: List of objective column names
+            df: DataFrame containing objective values
+            objective_senses: Dict mapping objective names to 'minimize' or 'maximize'
+                             If None, assumes all objectives are minimized
+        
+        Returns:
+            List of indices representing Pareto optimal solutions
+        """
         if not objectives or df.empty:
             return []
         
@@ -290,9 +316,22 @@ def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
         n_samples = len(df)
         
         # Extract objective values
-        obj_values = df[objectives].values
+        obj_values = df[objectives].values.copy()
         
-        # Find non-dominated solutions
+        # Normalize objectives: convert maximization to minimization by negating
+        # This allows us to use a single dominance check
+        if objective_senses:
+            for k, obj_name in enumerate(objectives):
+                sense = objective_senses.get(obj_name, 'minimize').lower()
+                if sense == 'maximize':
+                    obj_values[:, k] = -obj_values[:, k]
+                    print(f"DEBUG: Objective '{obj_name}' set to MAXIMIZE (values negated for Pareto calculation)")
+                else:
+                    print(f"DEBUG: Objective '{obj_name}' set to MINIMIZE")
+        else:
+            print(f"DEBUG: All objectives assumed to be MINIMIZED")
+        
+        # Find non-dominated solutions (all objectives treated as minimization now)
         for i in range(n_samples):
             is_dominated = False
             
@@ -300,7 +339,7 @@ def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
                 if i == j:
                     continue
                 
-                # Check if j dominates i (assuming minimization)
+                # Check if j dominates i
                 better_in_all = True
                 better_at_least_one = False
                 
@@ -312,12 +351,12 @@ def find_pareto_front(objectives, df: pd.DataFrame) -> List[int]:
                         better_at_least_one = True
                 
                 if better_in_all and better_at_least_one:
-                    is_dominated = True         # Set as dominated if dominated condition met true for all objectives
+                    is_dominated = True
                     break
             
-            if not is_dominated:                # Basically, pareto fronts will be a union of non-dominated solutions for each pair of objectives.
+            if not is_dominated:
                 pareto_indices.append(i)
         
-        print(f"Found {len(pareto_indices)} Pareto optimal solutions algorithmically")
+        print(f"Found {len(pareto_indices)} Pareto optimal solutions")
 
         return pareto_indices
