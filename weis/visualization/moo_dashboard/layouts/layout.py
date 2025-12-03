@@ -66,8 +66,17 @@ def create_main_layout() -> html.Div:
                         color='info', 
                         outline=True, 
                         size='sm',
+                        className='mb-2 me-2'
+                    ),
+                    dbc.Button(
+                        "Download Dashboard", 
+                        id='download-html-btn', 
+                        color='primary', 
+                        outline=True, 
+                        size='sm',
                         className='mb-2'
-                    )
+                    ),
+                    dcc.Download(id='download-splom-html')
                 ])
             ])
         ], style={'height': '100%'})

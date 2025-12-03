@@ -22,8 +22,7 @@ python main.py      # Make sure run this command at moo_dashboard directory
         - Different approach would be needed. Work on this after getting new dataset from Dan
 - [X] Show Pareto Fronts (Higher priority)
     - [X] Calculate from scratch
-- [ ] Download interactive version of html
-    - I think only graphs or tables should be exportable, not the entire page.
+- [X] Download interactive version of html
 - [X] Add toggle button to show or not show diagonal line in SPLOM
 - [X] Add objective options (min vs max) next to buttons
 - [ ] Add testing script to check if app works
