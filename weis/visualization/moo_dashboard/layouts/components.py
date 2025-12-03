@@ -176,7 +176,8 @@ def create_data_stores() -> list:
         dcc.Store(id='selected-channels', data=[]),
         dcc.Store(id='selected-iteration', data=""),  # Store for selected iteration (highlight)
         dcc.Store(id='pareto-front-enabled', data=False),  # Store for Pareto front toggle
-        dcc.Store(id='objective-senses', data={})  # Store for objective optimization directions
+        dcc.Store(id='objective-senses', data={}),  # Store for objective optimization directions
+        dcc.Store(id='diagonal-visible', data=True)  # Store for diagonal visibility
     ]
 
 

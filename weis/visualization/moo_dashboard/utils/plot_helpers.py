@@ -97,7 +97,7 @@ def calculate_margin_size(num_vars: int, font_size: int) -> int:
     return min(margin, MAX_MARGIN)
 
 
-def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None, pareto_indices: List[int] = None, variable_categories: Dict[str, str] = None):
+def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int, highlighted_iteration: int = None, pareto_indices: List[int] = None, variable_categories: Dict[str, str] = None, diagonal_visible: bool = True):
     """
     Create a scatter plot matrix (SPLOM) with color-coded samples and auto-sized labels.
     Uses plotly.graph_objects for better control of marker properties and highlighting.
@@ -109,6 +109,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
         highlighted_iteration: Optional iteration to highlight across all subplots
         pareto_indices: Optional list of indices for Pareto front points
         variable_categories: Dict mapping variable names to categories (objectives, constraints, design_vars)
+        diagonal_visible: Whether to show diagonal plots (default True)
 
     Returns:
         Plotly figure with SPLOM
@@ -200,7 +201,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 dtick=max(1, n_samples // 10)  # Show reasonable number of ticks
             )
         ),
-        diagonal_visible=True,
+        diagonal_visible=diagonal_visible,
         showupperhalf=True,
         showlowerhalf=False,
         name=f"",
@@ -239,7 +240,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 ),
                 opacity=0.8
             ),
-            diagonal_visible=True,
+            diagonal_visible=diagonal_visible,
             showupperhalf=True,
             showlowerhalf=False,
             name=f"Pareto Front ({len(pareto_indices)} points)",
@@ -277,7 +278,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
                 ),
                 opacity=HIGHLIGHT_OPACITY
             ),
-            diagonal_visible=True,
+            diagonal_visible=diagonal_visible,
             showupperhalf=True,
             showlowerhalf=False,
             name=f"Iteration {highlighted_iteration} (Selected)",

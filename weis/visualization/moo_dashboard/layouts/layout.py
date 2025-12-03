@@ -58,6 +58,14 @@ def create_main_layout() -> html.Div:
                         color='success', 
                         outline=True, 
                         size='sm',
+                        className='mb-2 me-2'
+                    ),
+                    dbc.Button(
+                        "Hide Diagonal", 
+                        id='diagonal-toggle-btn', 
+                        color='info', 
+                        outline=True, 
+                        size='sm',
                         className='mb-2'
                     )
                 ])

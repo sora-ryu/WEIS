@@ -34,6 +34,25 @@ def register_visualization_callbacks(app):
         else:
             return "Show Pareto Front"
     
+    @callback(Output('diagonal-visible', 'data'),
+              Input('diagonal-toggle-btn', 'n_clicks'),
+              State('diagonal-visible', 'data'),
+              prevent_initial_call=True)
+    def toggle_diagonal(n_clicks, current_state):
+        """Toggle diagonal visibility."""
+        if n_clicks is None:
+            return current_state
+        return not current_state
+    
+    @callback(Output('diagonal-toggle-btn', 'children'),
+              Input('diagonal-visible', 'data'))
+    def update_diagonal_button_text(diagonal_visible):
+        """Update button text based on diagonal visibility state."""
+        if diagonal_visible:
+            return "Hide Diagonal"
+        else:
+            return "Show Diagonal"
+    
     @callback([Output('splom', 'figure'),
                Output('selected-iteration', 'data')],
               [Input('csv-df', 'data'),
@@ -41,9 +60,10 @@ def register_visualization_callbacks(app):
                Input('clear-highlight-btn', 'n_clicks'),
                Input('splom', 'clickData'),
                Input('pareto-front-enabled', 'data'),
-               Input('objective-senses', 'data')],
+               Input('objective-senses', 'data'),
+               Input('diagonal-visible', 'data')],
               State('yaml-df', 'data'))
-    def update_splom(csv_data, selected_channels, clear_clicks, click_data, pareto_enabled, objective_senses, yaml_data):
+    def update_splom(csv_data, selected_channels, clear_clicks, click_data, pareto_enabled, objective_senses, diagonal_visible, yaml_data):
         """Update the scatter plot matrix based on selected channels and highlighted sample."""
 
         if csv_data is None:
@@ -125,7 +145,8 @@ def register_visualization_callbacks(app):
             len(all_selected_vars),
             highlighted_iteration,
             pareto_indices,
-            variable_categories
+            variable_categories,
+            diagonal_visible
         ), highlighted_iteration
 
 
