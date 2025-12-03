@@ -1,6 +1,13 @@
 """
 Configuration settings for the MOO Dashboard
 """
+import logging
+
+# Logging configuration
+logging.basicConfig(
+    level=logging.DEBUG if True else logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # App configuration
 DEBUG = True

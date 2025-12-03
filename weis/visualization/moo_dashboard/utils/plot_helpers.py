@@ -1,6 +1,7 @@
 """
 Plot helpers and formatting utilities
 """
+import logging
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
@@ -11,6 +12,8 @@ from config.settings import (
     HIGHLIGHT_COLOR, HIGHLIGHT_SIZE_MULTIPLIER, HIGHLIGHT_OPACITY, 
     NON_HIGHLIGHT_OPACITY, HIGHLIGHT_LINE_WIDTH, COLOR_SCALES, HIGHLIGHT_SYMBOL
 )
+
+logger = logging.getLogger(__name__)
 
 
 def calculate_font_size(num_vars: int, plot_width: int = DEFAULT_PLOT_WIDTH) -> int:
@@ -136,7 +139,7 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
     truncated_labels = truncate_labels(dimension_labels, max_label_length)
     
     # Debug: Check for problematic dimensions
-    print(f"DEBUG SPLOM: Creating SPLOM with {len(dimensions)} dimensions")
+    logger.debug(f"Creating SPLOM with {len(dimensions)} dimensions")
     for i, dim in enumerate(dimensions):
         values = np.array(dim['values'])
         values_clean = values[~np.isnan(values)]  # Remove NaN values for stats
@@ -146,17 +149,17 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
             val_max = np.max(values_clean)
             val_range = val_max - val_min
             
-            print(f"DEBUG SPLOM: Dimension '{dim['label']}':")
-            print(f"  - Values count: {len(values_clean)}/{len(values)}")
-            print(f"  - Range: {val_min:.6f} to {val_max:.6f} (range: {val_range:.6f})")
+            logger.debug(f"Dimension '{dim['label']}':")
+            logger.debug(f"  - Values count: {len(values_clean)}/{len(values)}")
+            logger.debug(f"  - Range: {val_min:.6f} to {val_max:.6f} (range: {val_range:.6f})")
             
             # Note potential visualization issues but don't modify data
             if val_range == 0:
-                print(f"  - NOTE: All values are identical ({val_min}) - may appear as single point")
+                logger.warning(f"  - All values are identical ({val_min}) - may appear as single point")
             elif val_range < 1e-10:
-                print(f"  - NOTE: Very small range - points may cluster tightly")
+                logger.warning(f"  - Very small range - points may cluster tightly")
         else:
-            print(f"DEBUG SPLOM: Dimension '{dim['label']}' has no valid values (all NaN)")
+            logger.warning(f"Dimension '{dim['label']}' has no valid values (all NaN)")
     
     # Create updated dimensions with truncated labels
     truncated_dimensions = []
@@ -291,8 +294,6 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
 
     # Update layout
     fig.update_layout(
-        width=DEFAULT_PLOT_WIDTH,
-        height=DEFAULT_PLOT_HEIGHT,
         title={
             'text': f'Scatterplot Matrix (SPLOM) - {n_vars} Variables × {n_samples} Iterations',
             'x': 0.5,
@@ -432,6 +433,10 @@ def create_table_figure(data: pd.DataFrame, variable_categories: Dict[str, str] 
             'margin': {'l': 20, 'r': 20, 't': 60, 'b': 20},
             'paper_bgcolor': '#ffffff',
             'plot_bgcolor': '#ffffff',
+            'font': {
+                'family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                'size': 13
+            },
             'height': max(300, min(600, num_rows * 40 + 120))  # Dynamic height based on data
         }
     }

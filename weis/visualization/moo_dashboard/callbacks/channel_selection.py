@@ -3,12 +3,15 @@ Channel selection callbacks for button interactions
 """
 import ast
 import io
+import logging
 import pandas as pd
 import numpy as np
 from dash import Input, Output, State, callback, callback_context, ALL, html, dcc
 
 from layouts.components import create_button_group, create_no_data_alert
 from config.settings import COLOR_SCALES
+
+logger = logging.getLogger(__name__)
 
 
 def detect_array_columns(csv_data):
@@ -56,13 +59,13 @@ def detect_array_columns(csv_data):
                 
                 if is_array:
                     array_columns.add(col)
-                    print(f"DEBUG: Detected array column '{col}' with sample value: {val}")
+                    logger.debug(f"Detected array column '{col}' with sample value: {val}")
                     break  # Found array in this column, move to next
 
-        print(f"DEBUG: Final detected array columns: {array_columns}")
+        logger.debug(f"Final detected array columns: {array_columns}")
         return array_columns
     except Exception as e:
-        print(f"Error detecting array columns: {e}")
+        logger.error(f"Error detecting array columns: {e}")
         return set()
 
 
@@ -83,7 +86,6 @@ def register_channel_selection_callbacks(app):
         
         # Detect array columns from CSV data
         array_columns = detect_array_columns(csv_data)
-        print(f"DEBUG: Detected array columns: {array_columns}")
 
         # Extract all variables
         objectives = list(yaml_data['objectives'].keys())
@@ -197,20 +199,20 @@ def register_channel_selection_callbacks(app):
             if trigger_info['type'] == 'channel-btn':
                 # Handle regular channel button clicks
                 clicked_var = trigger_info['index']
-                print(f"DEBUG: Regular channel clicked: {clicked_var}")
+                logger.debug(f"Regular channel clicked: {clicked_var}")
                 
                 # Toggle selection: add if not present, remove if present
                 if clicked_var in current_selected:
                     current_selected.remove(clicked_var)
-                    print(f"DEBUG: Removed {clicked_var}")
+                    logger.debug(f"Removed {clicked_var}")
                 else:
                     current_selected.append(clicked_var)
-                    print(f"DEBUG: Added {clicked_var}")
+                    logger.debug(f"Added {clicked_var}")
                     
             elif trigger_info['type'] == 'array-channel-btn':
                 # Handle array channel button clicks (automatically use separate mode)
                 var_name = trigger_info['index']
-                print(f"DEBUG: Array channel clicked: {var_name}")
+                logger.debug(f"Array channel clicked: {var_name}")
                 
                 # Check if this array variable is already selected
                 min_var = f"{var_name}_min"
@@ -221,21 +223,21 @@ def register_channel_selection_callbacks(app):
                     # Remove both min and max
                     current_selected = [sel for sel in current_selected 
                                       if sel not in [min_var, max_var]]
-                    print(f"DEBUG: Removed array: {min_var}, {max_var}")
+                    logger.debug(f"Removed array: {min_var}, {max_var}")
                 else:
                     # Remove any existing entries for this variable first
                     current_selected = [sel for sel in current_selected 
                                       if not (sel.startswith(f"{var_name}_") or sel == var_name)]
                     # Add min and max
                     current_selected.extend([min_var, max_var])
-                    print(f"DEBUG: Added array: {min_var}, {max_var}")
+                    logger.debug(f"Added array: {min_var}, {max_var}")
             
-            print(f"DEBUG: Current selected after: {current_selected}")
+            logger.debug(f"Current selected after: {current_selected}")
             return current_selected
             
         except Exception as e:
-            print(f"ERROR parsing button ID: {e}")
-            print(f"ERROR trigger_info: {trigger_info}")
+            logger.error(f"Error parsing button ID: {e}")
+            logger.error(f"Trigger info: {trigger_info}")
             return current_selected
 
 
@@ -256,5 +258,6 @@ def register_channel_selection_callbacks(app):
             if i < len(sense_values):
                 objective_senses[obj] = sense_values[i]
         
-        print(f"DEBUG: Updated objective senses: {objective_senses}")
+        logger.debug(f"Updated objective senses: {objective_senses}")
+        
         return objective_senses

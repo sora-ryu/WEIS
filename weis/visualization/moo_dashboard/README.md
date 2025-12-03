@@ -1,6 +1,7 @@
-# Dashboard for Multi Objective Optimization
+# Dashboard for Multi-Objective Optimization
 
-This is having the same coding environment as WEIS Input/Output Viz tool (appServer/) where it's mainly based on Dash and Plotly. This is separate and works independently for now, but could be potentially merged later.
+This dashboard is for visualizing multi objective optimization results to support better trade-off analysis.
+This has the same coding environment as WEIS Input/Output Viz tool (appServer/) where it's mainly based on Dash and Plotly. This is separate and works independently for now, but could be potentially merged later.
 
 ## How to Run
 
@@ -9,7 +10,7 @@ conda activate weis-env
 python main.py      # Make sure run this command at moo_dashboard directory
 ```
 
-## Action Items
+<!-- ## Action Items
 - [X] Data Upload
 - [X] Dynamic Scatter plot matrix renderer with toggle buttons - channel multi-selection from the user
 - [X] Link samples
@@ -26,7 +27,7 @@ python main.py      # Make sure run this command at moo_dashboard directory
 - [X] Add toggle button to show or not show diagonal line in SPLOM
 - [X] Add objective options (min vs max) next to buttons
 - [ ] Add testing script to check if app works
-- [ ] Submit PR when it's ready
+- [X] Submit PR when it's ready
 
 - How to calculate Pareto Fronts with 3 objective functions?
     - Should be okay with Cory's function
@@ -40,4 +41,4 @@ python main.py      # Make sure run this command at moo_dashboard directory
 ## Food for Thoughts
 - How to work on 3+ objectives?
 - 3D+ Pareto Fronts?
-- Connect all of the optimization results (DoE, DLC, Timeseries, etc.)
+- Connect all of the optimization results (DoE, DLC, Timeseries, etc.) -->

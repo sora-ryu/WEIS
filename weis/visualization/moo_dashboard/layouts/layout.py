@@ -25,20 +25,18 @@ def create_main_layout() -> html.Div:
     )
     
     # Configuration panel
-    cfg_graph_input = dbc.Col([
-            # dbc.Label("Channels to display:", className="fw-bold mb-2"),
+    cfg_graph_input = html.Div([
             html.Div(
                 id='channels', 
                 children=[
-                    dbc.Alert("Load YAML file to see variable options", color="info", className="text-center")
+                    dbc.Alert("Load YAML file to see variable options", className="text-center")
                 ],
                 style={
-                    'maxHeight': 'calc(100% - 100px)',
+                    'maxHeight': 'calc(100% - 160px)',
                     'overflowY': 'auto',
                     'padding': '10px',
-                    'border': '1px solid #dee2e6',
-                    'borderRadius': '0.375rem',
-                    'backgroundColor': '#f8f9fa'
+                    'marginBottom': '15px',
+                    'fontFamily': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
                 }
             ),
             html.Hr(),
@@ -79,67 +77,116 @@ def create_main_layout() -> html.Div:
                     dcc.Download(id='download-splom-html')
                 ])
             ])
-        ], style={'height': '100%'})
+        ], style={'width': '100%'})
     
     # Simple layout with full width
     layout = html.Div([
-        # File Loaders - Full width
-        dbc.Row([
-            dbc.Col(csv_file_input, width=12),
-        ], className="g-0"),
-        dbc.Row([
-            dbc.Col(yaml_file_input, width=12),
-        ], className="g-0 mb-3"),
+        # Gradient header
+        html.Div([
+            html.H1("WEIS Multi-Objective Optimization Dashboard", style={'margin': '0', 'fontSize': '28px'}),
+            html.Div(id='objective-goals-display', style={'fontSize': '14px', 'opacity': '0.9', 'marginTop': '5px'})
+        ], style={
+            'background': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'color': 'white',
+            'padding': '20px',
+            'borderRadius': '10px',
+            'marginBottom': '20px',
+            'boxShadow': '0 4px 6px rgba(0,0,0,0.1)'
+        }),
         
-        # Main content - 2x2 grid layout
-        # Left column: cfg_graph_input on top, data-table on bottom
-        # Right column: splom spanning both rows (square aspect ratio)
+        # File Loaders in cards
+        html.Div([
+            html.Div([
+                html.H2("Load Data Files", style={'margin': '0 0 15px 0', 'fontSize': '20px', 'color': '#495057'}),
+                csv_file_input,
+                yaml_file_input
+            ], style={
+                'background': 'white',
+                'padding': '15px',
+                'borderRadius': '10px',
+                'marginBottom': '15px',
+                'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
+            })
+        ]),
+        
+        # Main content - 2x2 grid layout with card styling
         html.Div([
             # Left column with two stacked components
             html.Div([
-                # Top left: cfg_graph_input
-                html.Div(
-                    cfg_graph_input,
-                    style={
-                        'height': '50%', 
-                        'overflowY': 'auto',
-                        'overflowX': 'hidden'
-                    }
-                ),
-                # Bottom left: data-table (aligned with cfg_graph_input border)
-                html.Div(
+                # Top left: cfg_graph_input in a card
+                html.Div([
+                    html.H2("Controls & Variables", style={
+                        'margin': '0 0 15px 0',
+                        'fontSize': '20px',
+                        'color': '#495057',
+                        'fontFamily': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+                    }),
+                    cfg_graph_input
+                ], style={
+                    'height': '50%',
+                    'background': 'white',
+                    'padding': '20px',
+                    'borderRadius': '10px',
+                    'marginBottom': '20px',
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+                    'overflowY': 'auto',
+                    'boxSizing': 'border-box'
+                }),
+                # Bottom left: data-table in a card
+                html.Div([
+                    html.H2("Data Table", style={
+                        'margin': '0 0 15px 0',
+                        'fontSize': '20px',
+                        'color': '#495057',
+                        'fontFamily': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+                    }),
                     dcc.Graph(
                         id='data-table', 
-                        style={'height': '100%'},
+                        style={'height': 'calc(100% - 50px)'},
                         config={'responsive': True}
-                    ),
-                    style={
-                        'height': '50%'
-                    }
-                )
+                    )
+                ], style={
+                    'height': 'calc(50% - 20px)',
+                    'background': 'white',
+                    'padding': '20px',
+                    'borderRadius': '10px',
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+                    'boxSizing': 'border-box'
+                })
             ], style={
-                'width': '33%',
-                'height': 'calc(100vh - 200px)',  # Dynamic height based on viewport
+                'width': '50%',
+                'height': 'calc(100vh - 300px)',
+                'overflowY': 'auto',
                 'display': 'inline-block',
                 'verticalAlign': 'top',
-                'paddingRight': '10px',
+                'paddingRight': '20px',
                 'boxSizing': 'border-box'
             }),
-            # Right column: splom graph spanning full height with square aspect ratio
-            html.Div(
+            # Right column: splom graph in a card
+            html.Div([
+                html.H2("Scatter Plot Matrix (SPLOM)", style={
+                    'margin': '0 0 15px 0',
+                    'fontSize': '20px',
+                    'color': '#495057',
+                    'fontFamily': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+                }),
                 dcc.Graph(
                     id='splom', 
-                    style={'height': '100%', 'width': '100%'},
+                    style={'height': 'calc(100% - 50px)', 'width': '100%'},
                     config={'responsive': True}
-                ),
-                style={
-                    'width': 'calc(min(67vw - 40px, 100vh - 200px))',  # Square: min of width and height
-                    'height': 'calc(min(67vw - 40px, 100vh - 200px))',
-                    'display': 'inline-block',
-                    'verticalAlign': 'top',
-                    'maxWidth': '67%'
-                }
-            )
+                )
+            ], style={
+                'width': '50%',
+                'height': 'calc(100vh - 300px)',
+                'background': 'white',
+                'padding': '20px',
+                'borderRadius': '10px',
+                'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+                'display': 'inline-block',
+                'verticalAlign': 'top',
+                'maxWidth': '67%',
+                'boxSizing': 'border-box'
+            })
         ], style={
             'width': '100%',
             'whiteSpace': 'nowrap'
@@ -149,10 +196,12 @@ def create_main_layout() -> html.Div:
         *create_data_stores()
     ], style={
         'width': '100%',
-        'maxWidth': '100%',
-        'margin': '0',
-        'padding': '15px',
-        'boxSizing': 'border-box'
+        'maxWidth': '1800px',
+        'margin': '0 auto',
+        'padding': '20px',
+        'boxSizing': 'border-box',
+        'backgroundColor': '#f8f9fa',
+        'minHeight': '100vh'
     })
     
     return layout

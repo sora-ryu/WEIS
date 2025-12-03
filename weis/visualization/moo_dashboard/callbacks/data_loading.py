@@ -3,6 +3,7 @@ Data loading callbacks for CSV and YAML files
 """
 from dash import Input, Output, State, callback, callback_context
 import io
+import logging
 import pandas as pd
 
 from utils.data_processing import (
@@ -11,6 +12,8 @@ from utils.data_processing import (
     load_yaml_from_path, 
     process_yaml_config
 )
+
+logger = logging.getLogger(__name__)
 
 
 def register_data_loading_callbacks(app):
@@ -58,7 +61,8 @@ def register_data_loading_callbacks(app):
             if result:
                 # Print preview for debugging
                 df = pd.read_json(io.StringIO(result), orient='split')
-                print(df.head())
+                logger.debug(f"CSV loaded with shape: {df.shape}")
+                logger.debug(f"CSV preview:\n{df.head()}")
             return result
         
         return None
@@ -88,9 +92,9 @@ def register_data_loading_callbacks(app):
         
         if config:
             result = process_yaml_config(config)
-            print(f"Objectives: {result['objectives']}")
-            print(f"Constraints: {result['constraints']}")
-            print(f"Design Variables: {result['design_vars']}")
+            logger.info(f"Objectives: {result['objectives']}")
+            logger.info(f"Constraints: {result['constraints']}")
+            logger.info(f"Design Variables: {result['design_vars']}")
             return result
         
         return None

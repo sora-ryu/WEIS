@@ -3,11 +3,14 @@ Data processing utilities for the MOO Dashboard
 """
 import base64
 import io
+import logging
 import pandas as pd
 import yaml
 import ast
 import numpy as np
 from typing import Optional, Dict, List, Any
+
+logger = logging.getLogger(__name__)
 
 
 def parse_uploaded_contents(contents: str, filename: str) -> Optional[Any]:
@@ -37,7 +40,7 @@ def parse_uploaded_contents(contents: str, filename: str) -> Optional[Any]:
             return yaml.safe_load(io.StringIO(decoded.decode('utf-8')))
             
     except Exception as e:
-        print(f"Error parsing file {filename}: {e}")
+        logger.error(f"Error parsing file {filename}: {e}")
         return None
 
 
@@ -57,12 +60,12 @@ def load_csv_from_path(file_path: str) -> Optional[str]:
         elif file_path.endswith(('.xls', '.xlsx')):
             df = pd.read_excel(file_path)
         else:
-            print(f"Unsupported file format: {file_path}")
+            logger.error(f"Unsupported file format: {file_path}")
             return None
             
         return df.to_json(date_format='iso', orient='split')
     except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
+        logger.error(f"Error reading file {file_path}: {e}")
         return None
 
 
@@ -80,7 +83,7 @@ def load_yaml_from_path(file_path: str) -> Optional[Dict]:
         with open(file_path, 'r') as file:
             return yaml.safe_load(file)
     except Exception as e:
-        print(f"Error reading YAML file {file_path}: {e}")
+        logger.error(f"Error reading YAML file {file_path}: {e}")
         return None
 
 
@@ -193,9 +196,9 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
         elif config['type'] == 'array':
             # Array variable - separate min and max
             array_data = df[base_var]
-            print(f"DEBUG: Processing array variable '{base_var}' for separate min/max")
-            print(f"DEBUG: Array data type: {type(array_data.iloc[0]) if len(array_data) > 0 else 'empty'}")
-            print(f"DEBUG: Sample array values: {array_data.head(2).tolist()}")
+            logger.debug(f"Processing array variable '{base_var}' for separate min/max")
+            logger.debug(f"Array data type: {type(array_data.iloc[0]) if len(array_data) > 0 else 'empty'}")
+            logger.debug(f"Sample array values: {array_data.head(2).tolist()}")
             
             # Process array values to extract min and max
             min_values = []
@@ -232,7 +235,7 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
                                     arr = np.array([float(val)])
                             except (ValueError, TypeError):
                                 # If all parsing fails, skip this value
-                                print(f"Warning: Could not convert '{val}' to numeric array, skipping")
+                                logger.warning(f"Could not convert '{val}' to numeric array, skipping")
                                 continue
                     else:
                         arr = np.array([float(val)])
@@ -268,7 +271,7 @@ def prepare_dataframe_for_splom(df: pd.DataFrame, selected_vars: List[str], yaml
                         max_values.append(np.nan)
                         
                 except Exception as e:
-                    print(f"Warning: Error processing array value '{val}': {e}")
+                    logger.warning(f"Error processing array value '{val}': {e}")
                     min_values.append(np.nan)
                     max_values.append(np.nan)
             
@@ -325,11 +328,11 @@ def find_pareto_front(objectives: List[str], df: pd.DataFrame, objective_senses:
                 sense = objective_senses.get(obj_name, 'minimize').lower()
                 if sense == 'maximize':
                     obj_values[:, k] = -obj_values[:, k]
-                    print(f"DEBUG: Objective '{obj_name}' set to MAXIMIZE (values negated for Pareto calculation)")
+                    logger.debug(f"Objective '{obj_name}' set to MAXIMIZE (values negated for Pareto calculation)")
                 else:
-                    print(f"DEBUG: Objective '{obj_name}' set to MINIMIZE")
+                    logger.debug(f"Objective '{obj_name}' set to MINIMIZE")
         else:
-            print(f"DEBUG: All objectives assumed to be MINIMIZED")
+            logger.debug("All objectives assumed to be MINIMIZED")
         
         # Find non-dominated solutions (all objectives treated as minimization now)
         for i in range(n_samples):
@@ -357,6 +360,6 @@ def find_pareto_front(objectives: List[str], df: pd.DataFrame, objective_senses:
             if not is_dominated:
                 pareto_indices.append(i)
         
-        print(f"Found {len(pareto_indices)} Pareto optimal solutions")
+        logger.info(f"Found {len(pareto_indices)} Pareto optimal solutions")
 
         return pareto_indices

@@ -2,6 +2,7 @@
 Visualization callbacks for plot generation
 """
 import io
+import logging
 import pandas as pd
 from dash import Input, Output, State, callback, callback_context
 
@@ -10,6 +11,8 @@ from utils.plot_helpers import (
     create_splom_figure, create_empty_figure_with_message, 
     create_table_figure
 )
+
+logger = logging.getLogger(__name__)
 
 
 def register_visualization_callbacks(app):
@@ -77,7 +80,7 @@ def register_visualization_callbacks(app):
         if ctx.triggered:
             trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
             
-            print(f"DEBUG: Trigger ID: {trigger_id}")
+            logger.debug(f"Trigger ID: {trigger_id}")
 
             if trigger_id == 'clear-highlight-btn':
                 highlighted_iteration = None
@@ -86,16 +89,16 @@ def register_visualization_callbacks(app):
                 # Handle plot clicks
                 if 'points' in click_data and len(click_data['points']) > 0:
                     point = click_data['points'][0]
-                    print(f"DEBUG: Clicked point: {point}")
+                    logger.debug(f"Clicked point: {point}")
                     new_iteration = point['pointNumber']
 
                     # Toggle selection
                     if highlighted_iteration == new_iteration:
                         highlighted_iteration = None
-                        print("DEBUG: Deselecting point")
+                        logger.debug("Deselecting point")
                     else:
                         highlighted_iteration = new_iteration
-                        print(f"DEBUG: Highlighting iteration: {highlighted_iteration}")
+                        logger.debug(f"Highlighting iteration: {highlighted_iteration}")
 
         # Convert JSON back to DataFrame
         df = pd.read_json(io.StringIO(csv_data), orient='split')
@@ -126,14 +129,14 @@ def register_visualization_callbacks(app):
                     objective_senses = {obj: 'minimize' for obj in objectives}
                 
                 if len(objectives) >= 2:
-                    print(f"DEBUG: Calculating Pareto front for objectives: {objectives}")
-                    print(f"DEBUG: Objective senses (from UI): {objective_senses}")
+                    logger.debug(f"Calculating Pareto front for objectives: {objectives}")
+                    logger.debug(f"Objective senses (from UI): {objective_senses}")
                     pareto_indices = find_pareto_front(objectives, df, objective_senses)
-                    print(f"DEBUG: Found {len(pareto_indices) if pareto_indices else 0} Pareto optimal points")
+                    logger.debug(f"Found {len(pareto_indices) if pareto_indices else 0} Pareto optimal points")
                 else:
-                    print(f"DEBUG: Not enough objectives ({len(objectives)}) for Pareto front calculation")
+                    logger.debug(f"Not enough objectives ({len(objectives)}) for Pareto front calculation")
             except Exception as e:
-                print(f"DEBUG: Error calculating Pareto front: {e}")
+                logger.error(f"Error calculating Pareto front: {e}")
                 import traceback
                 traceback.print_exc()
                 pareto_indices = None
@@ -326,7 +329,7 @@ def register_visualization_callbacks(app):
 <html>
 <head>
     <meta charset="utf-8">
-    <title>MOO Dashboard - Interactive Export</title>
+    <title>WEIS MOO Dashboard - Interactive Export</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         body {{
@@ -424,7 +427,7 @@ def register_visualization_callbacks(app):
 <body>
     <div class="container">
         <div class="header">
-            <h1>Multi-Objective Optimization Dashboard</h1>
+            <h1>WEIS Multi-Objective Optimization Dashboard</h1>
             <div class="export-info">Exported on {datetime.now().strftime("%B %d, %Y at %H:%M:%S")}</div>
             <div class="export-info" id="objectiveGoals" style="margin-top: 10px;"></div>
         </div>
@@ -719,18 +722,8 @@ def register_table_callbacks(app):
         # Get the selected row data and transpose for display
         filtered_df = df.iloc[[selected_iteration]].T
         
-        print(f'Selected iteration: {selected_iteration}')
-        print('Filtered DataFrame\n', filtered_df)
-        
-        # Extract categories from YAML
-        variable_categories = {}
-        if yaml_data:
-            for var in yaml_data.get('objectives', {}).keys():
-                variable_categories[var] = 'objectives'
-            for var in yaml_data.get('constraints', {}).keys():
-                variable_categories[var] = 'constraints'
-            for var in yaml_data.get('design_vars', {}).keys():
-                variable_categories[var] = 'design_vars'
+        logger.info(f'Selected iteration: {selected_iteration}')
+        logger.debug(f'Filtered DataFrame:\n{filtered_df}')
 
-        # Use the enhanced table with statistical comparisons
-        return create_table_figure(filtered_df, variable_categories)
+        # Use the enhanced table without color categories
+        return create_table_figure(filtered_df, None)
