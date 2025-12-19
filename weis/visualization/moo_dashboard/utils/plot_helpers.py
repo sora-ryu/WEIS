@@ -126,6 +126,20 @@ def create_splom_figure(df: pd.DataFrame, dimensions: List[Dict], num_vars: int,
     }
     if df.empty or not dimensions:
         return go.Figure()
+    
+    # Check if we have enough dimensions for a proper SPLOM
+    if len(dimensions) < 2:
+        return create_empty_figure_with_message(
+            'Select at least 2 variables to create a Scatter Plot Matrix',
+            'orange'
+        )
+    
+    # With only 2 dimensions and diagonal hidden, show a warning
+    if len(dimensions) == 2 and not diagonal_visible:
+        return create_empty_figure_with_message(
+            'Cannot hide diagonal with only 2 variables selected. Please select more variables or show diagonal.',
+            'orange'
+        )
 
     # Calculate optimal font size and margins
     font_size = calculate_font_size(num_vars, DEFAULT_PLOT_WIDTH)

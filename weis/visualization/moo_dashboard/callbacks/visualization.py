@@ -106,6 +106,12 @@ def register_visualization_callbacks(app):
         # Ensure selected variables are lists
         selected_channels = selected_channels or []
         all_selected_vars = list(set(selected_channels))
+        
+        # Check if we have enough variables for a SPLOM (need at least 2)
+        if len(all_selected_vars) < 2:
+            return create_empty_figure_with_message(
+                'Select at least 2 variables to create a Scatter Plot Matrix', 'orange'
+            ), highlighted_iteration
 
         # Prepare data for SPLOM
         result = prepare_dataframe_for_splom(df, all_selected_vars, yaml_data)
