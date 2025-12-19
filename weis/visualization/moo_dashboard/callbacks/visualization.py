@@ -276,6 +276,11 @@ def register_visualization_callbacks(app):
                             if orig_col in objective_senses and simplified_name in simplified_df.columns:
                                 objective_senses_simplified[simplified_name] = objective_senses[orig_col]
                     
+                    # If no objective senses provided, default to minimize for all objectives
+                    if not objective_senses_simplified:
+                        for simplified_name in objective_cols_simplified:
+                            objective_senses_simplified[simplified_name] = 'minimize'
+                    
                     # Calculate Pareto front using simplified column names and mapped senses
                     pareto_indices = find_pareto_front(objective_cols_simplified, simplified_df, objective_senses_simplified)
                 
@@ -315,10 +320,15 @@ def register_visualization_callbacks(app):
         
         # Don't include highlight trace in export (user can click to create new ones)
         
-        # Create the complete figure for export
+        # Create the complete figure for export with square dimensions
+        export_layout = splom_figure.get('layout', {}).copy()
+        # Set width and height to make SPLOM square (default to 800x800)
+        export_layout['width'] = 800
+        export_layout['height'] = 800
+        
         export_figure = {
             'data': all_traces,
-            'layout': splom_figure.get('layout', {})
+            'layout': export_layout
         }
         
         # Generate filename with timestamp
