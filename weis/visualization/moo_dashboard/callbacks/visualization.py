@@ -12,6 +12,8 @@ from utils.plot_helpers import (
     create_table_figure
 )
 
+from config.settings import *
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,7 +59,10 @@ def register_visualization_callbacks(app):
             return "Show Diagonal"
     
     @callback([Output('splom', 'figure'),
-               Output('selected-iteration', 'data')],
+               Output('selected-iteration', 'data'),
+               Output('simplified-df', 'data'),
+               Output('dimensions-data', 'data'),
+               Output('variable-categories-data', 'data')],
               [Input('csv-df', 'data'),
                Input('selected-channels', 'data'),
                Input('clear-highlight-btn', 'n_clicks'),
@@ -72,7 +77,7 @@ def register_visualization_callbacks(app):
         if csv_data is None:
             return create_empty_figure_with_message(
                 'Load data to view plots', 'gray'
-            ), None
+            ), None, None, None, None
         
         ctx = callback_context
         highlighted_iteration = None
@@ -111,16 +116,27 @@ def register_visualization_callbacks(app):
         if len(all_selected_vars) < 2:
             return create_empty_figure_with_message(
                 'Select at least 2 variables to create a Scatter Plot Matrix', 'orange'
-            ), highlighted_iteration
+            ), highlighted_iteration, None, None, None
 
         # Prepare data for SPLOM
         result = prepare_dataframe_for_splom(df, all_selected_vars, yaml_data)
         if result[0] is None:  # No valid data
             return create_empty_figure_with_message(
                 'Click variable buttons to select channels for SPLOM', 'blue'
-            ), highlighted_iteration
+            ), highlighted_iteration, None, None, None
 
         simplified_df, dimensions, variable_categories = result
+        logger.debug(f"Dimensions after update splom: {[dim['label'] for dim in dimensions]}")
+        
+        # Serialize dimensions and simplified_df for storage
+        dimensions_serializable = []
+        for dim in dimensions:
+            dim_copy = dict(dim)
+            if hasattr(dim_copy['values'], 'tolist'):
+                dim_copy['values'] = dim_copy['values'].tolist()
+            dimensions_serializable.append(dim_copy)
+        
+        simplified_df_json = simplified_df.to_json(orient='split') if simplified_df is not None else None
 
         # Calculate Pareto front if enabled
         pareto_indices = None
@@ -156,7 +172,7 @@ def register_visualization_callbacks(app):
             pareto_indices,
             variable_categories,
             diagonal_visible
-        ), highlighted_iteration
+        ), highlighted_iteration, simplified_df_json, dimensions_serializable, variable_categories
 
 
     @callback(
@@ -168,62 +184,35 @@ def register_visualization_callbacks(app):
         State('yaml-df', 'data'),
         State('selected-channels', 'data'),
         State('objective-senses', 'data'),
+        State('simplified-df', 'data'),
+        State('dimensions-data', 'data'),
+        State('selected-iteration', 'data'),
         prevent_initial_call=True
     )
-    def download_splom_html(n_clicks, splom_figure, table_figure, csv_data, yaml_data, selected_channels, objective_senses):
+    def download_splom_html(n_clicks, splom_figure, table_figure, csv_data, yaml_data, selected_channels, objective_senses, simplified_df_json, dimensions_serializable, selected_iteration):
         """Download an interactive HTML file with SPLOM, data table, and working controls."""
         if n_clicks is None or splom_figure is None or csv_data is None:
             return None
         
-        import plotly.graph_objects as go
         import json
         from datetime import datetime
-        
-        # Parse CSV data to reconstruct complete data trace if needed
-        df = pd.read_json(io.StringIO(csv_data), orient='split')
         
         # Ensure the SPLOM figure has the main data trace visible
         # The issue is that splom_figure might not have the base data trace if it's been filtered
         # So we need to ensure all traces are present
         all_traces = []
         
-        # Find or create the main data points trace
-        main_trace = None
-        pareto_trace = None
-        highlight_trace = None
-        
-        for trace in splom_figure.get('data', []):
-            if trace.get('name') == 'Data Points':
-                main_trace = trace
-            elif trace.get('name') == 'Pareto Front':
-                pareto_trace = trace
-            elif trace.get('name') == 'Highlighted':
-                highlight_trace = trace
-        
-        # Prepare data for reconstruction if needed
+        # Use the stored result from update_splom instead of recalculating
+        # Deserialize simplified_df if available
         simplified_df = None
-        dimensions_serializable = None
-        variable_categories = None
+        if simplified_df_json:
+            simplified_df = pd.read_json(io.StringIO(simplified_df_json), orient='split')
         
-        if selected_channels and yaml_data:
-            simplified_df, dimensions, variable_categories = prepare_dataframe_for_splom(df, selected_channels, yaml_data)
-            
-            # Convert numpy arrays to lists for JSON serialization
-            dimensions_serializable = []
-            for dim in dimensions:
-                dim_copy = dict(dim)
-                if hasattr(dim_copy['values'], 'tolist'):
-                    dim_copy['values'] = dim_copy['values'].tolist()
-                dimensions_serializable.append(dim_copy)
-        
-        # If main trace exists, add it first
-        if main_trace:
-            # Ensure it's visible
-            main_trace_copy = dict(main_trace)
-            main_trace_copy['visible'] = True
-            all_traces.append(main_trace_copy)
-        elif dimensions_serializable:
-            # Reconstruct main trace from data if it's missing
+        # dimensions_serializable and variable_categories are already in the correct format from storage
+        if dimensions_serializable:
+            logger.debug("Dimensions: %s", [dim['label'] for dim in dimensions_serializable])
+
+            # Reconstruct main trace from data
             colors = list(range(len(simplified_df)))
             text_labels = [f"Iteration {i}" for i in range(len(simplified_df))]
             
@@ -314,11 +303,37 @@ def register_visualization_callbacks(app):
                             'visible': True
                         }
                         all_traces.append(pareto_trace_reconstructed)
-        elif pareto_trace:
-            # Use existing Pareto trace if we couldn't reconstruct
-            all_traces.append(dict(pareto_trace))
         
-        # Don't include highlight trace in export (user can click to create new ones)
+        # Add highlight trace - either existing or default to iteration 0
+        highlight_dimensions = []
+        for dim in dimensions_serializable:
+            if selected_iteration is not None:
+                index = selected_iteration
+            else:
+                index = 0
+            highlight_dimensions.append({
+                'label': dim['label'],
+                'values': [dim['values'][index]]
+            })
+        
+        default_highlight_trace = {
+            'type': 'splom',
+            'name': f'Iteration {index} (Selected)',
+            'dimensions': highlight_dimensions,
+            'text': [f'Iteration {index} (Selected)'],
+            'marker': {
+                'color': HIGHLIGHT_COLOR,
+                'size': MARKER_SIZE * HIGHLIGHT_SIZE_MULTIPLIER,
+                'symbol': HIGHLIGHT_SYMBOL,
+                'line': {'color': 'black', 'width': HIGHLIGHT_LINE_WIDTH},
+                'opacity': HIGHLIGHT_OPACITY
+            },
+            'diagonal': {'visible': False},
+            'showupperhalf': True,
+            'showlowerhalf': False,
+            'visible': True
+        }
+        all_traces.append(default_highlight_trace)
         
         # Create the complete figure for export with square dimensions
         export_layout = splom_figure.get('layout', {}).copy()
@@ -515,6 +530,11 @@ def register_visualization_callbacks(app):
         Plotly.newPlot('splom', initialData, splomFigure.layout);
         if (initialTableData.data) {{
             Plotly.newPlot('table', initialTableData.data, initialTableData.layout);
+        }}
+        
+        // Initialize table with iteration 0 data by default
+        if (csvData) {{
+            updateTable(0);
         }}
         
         // Click event handler for SPLOM

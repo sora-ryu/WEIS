@@ -177,7 +177,10 @@ def create_data_stores() -> list:
         dcc.Store(id='selected-iteration', data=""),  # Store for selected iteration (highlight)
         dcc.Store(id='pareto-front-enabled', data=False),  # Store for Pareto front toggle
         dcc.Store(id='objective-senses', data={}),  # Store for objective optimization directions
-        dcc.Store(id='diagonal-visible', data=True)  # Store for diagonal visibility
+        dcc.Store(id='diagonal-visible', data=True),  # Store for diagonal visibility
+        dcc.Store(id='simplified-df'),  # Store for simplified dataframe from prepare_dataframe_for_splom
+        dcc.Store(id='dimensions-data'),  # Store for dimensions from prepare_dataframe_for_splom
+        dcc.Store(id='variable-categories-data')  # Store for variable categories from prepare_dataframe_for_splom
     ]
 
 
