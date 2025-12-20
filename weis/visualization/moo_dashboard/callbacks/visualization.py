@@ -179,7 +179,6 @@ def register_visualization_callbacks(app):
         Output('download-splom-html', 'data'),
         Input('download-html-btn', 'n_clicks'),
         State('splom', 'figure'),
-        State('data-table', 'figure'),
         State('csv-df', 'data'),
         State('yaml-df', 'data'),
         State('selected-channels', 'data'),
@@ -189,7 +188,7 @@ def register_visualization_callbacks(app):
         State('selected-iteration', 'data'),
         prevent_initial_call=True
     )
-    def download_splom_html(n_clicks, splom_figure, table_figure, csv_data, yaml_data, selected_channels, objective_senses, simplified_df_json, dimensions_serializable, selected_iteration):
+    def download_splom_html(n_clicks, splom_figure, csv_data, yaml_data, selected_channels, objective_senses, simplified_df_json, dimensions_serializable, selected_iteration):
         """Download an interactive HTML file with SPLOM, data table, and working controls."""
         if n_clicks is None or splom_figure is None or csv_data is None:
             return None
@@ -304,36 +303,8 @@ def register_visualization_callbacks(app):
                         }
                         all_traces.append(pareto_trace_reconstructed)
         
-        # Add highlight trace - either existing or default to iteration 0
-        highlight_dimensions = []
-        for dim in dimensions_serializable:
-            if selected_iteration is not None:
-                index = selected_iteration
-            else:
-                index = 0
-            highlight_dimensions.append({
-                'label': dim['label'],
-                'values': [dim['values'][index]]
-            })
-        
-        default_highlight_trace = {
-            'type': 'splom',
-            'name': f'Iteration {index} (Selected)',
-            'dimensions': highlight_dimensions,
-            'text': [f'Iteration {index} (Selected)'],
-            'marker': {
-                'color': HIGHLIGHT_COLOR,
-                'size': MARKER_SIZE * HIGHLIGHT_SIZE_MULTIPLIER,
-                'symbol': HIGHLIGHT_SYMBOL,
-                'line': {'color': 'black', 'width': HIGHLIGHT_LINE_WIDTH},
-                'opacity': HIGHLIGHT_OPACITY
-            },
-            'diagonal': {'visible': False},
-            'showupperhalf': True,
-            'showlowerhalf': False,
-            'visible': True
-        }
-        all_traces.append(default_highlight_trace)
+        # Don't add any highlight trace by default - only when user clicks
+        # The highlight will be added via JavaScript when user clicks a point
         
         # Create the complete figure for export with square dimensions
         export_layout = splom_figure.get('layout', {}).copy()
@@ -352,7 +323,6 @@ def register_visualization_callbacks(app):
         
         # Convert figures to JSON for embedding
         splom_json = json.dumps(export_figure)
-        table_json = json.dumps(table_figure) if table_figure else json.dumps({})
         
         # Create comprehensive interactive HTML
         html_content = f"""
@@ -464,7 +434,6 @@ def register_visualization_callbacks(app):
         </div>
         
         <div class="controls">
-            <button class="btn btn-secondary" onclick="clearHighlight()">Clear Highlighting</button>
             <button class="btn btn-success" id="paretoBtn" onclick="togglePareto()">Hide Pareto Front</button>
             <button class="btn btn-info" id="diagonalBtn" onclick="toggleDiagonal()">Show Diagonal</button>
         </div>
@@ -487,7 +456,6 @@ def register_visualization_callbacks(app):
         const csvData = {json.dumps(csv_data)};
         const yamlData = {json.dumps(yaml_data)};
         const splomFigure = {splom_json};
-        const initialTableData = {table_json};
         const objectiveSenses = {json.dumps(objective_senses or {})};
         
         // Store initial data (includes all traces: data points, pareto, etc.)
@@ -526,119 +494,123 @@ def register_visualization_callbacks(app):
             }}
         }}
         
-        // Initialize plots with all data
-        Plotly.newPlot('splom', initialData, splomFigure.layout);
-        if (initialTableData.data) {{
-            Plotly.newPlot('table', initialTableData.data, initialTableData.layout);
-        }}
-        
-        // Initialize table with iteration 0 data by default
-        if (csvData) {{
-            updateTable(0);
-        }}
-        
-        // Click event handler for SPLOM
-        document.getElementById('splom').on('plotly_click', function(data) {{
-            if (data.points && data.points.length > 0) {{
-                const point = data.points[0];
+        // Define functions first
+        function updateTable(pointIndex) {{
+            console.log('=== updateTable called with pointIndex:', pointIndex);
+            
+            if (!csvData) {{
+                console.error('No CSV data available');
+                return;
+            }}
+            
+            try {{
+                // Parse CSV data
+                const df = JSON.parse(csvData);
+                const columns = df.columns;
+                const data = df.data;
                 
-                // Get the point index - handle different trace types
-                let pointIndex = point.pointIndex;
+                if (!data || !data[pointIndex]) {{
+                    console.error('No data for point index', pointIndex);
+                    return;
+                }}
                 
-                // If clicked on Pareto or other trace, find the actual index in main data
-                if (point.data.name !== 'Data Points') {{
-                    const clickedValue = point.data.dimensions[0].values[point.pointIndex];
-                    const mainTrace = initialData.find(t => t.name === 'Data Points');
-                    if (mainTrace) {{
-                        pointIndex = mainTrace.dimensions[0].values.indexOf(clickedValue);
+                // Get row data for selected point
+                const rowData = data[pointIndex];
+                
+                // Extract variable categories
+                const variableCategories = {{}};
+                if (yamlData) {{
+                    if (yamlData.objectives) {{
+                        Object.keys(yamlData.objectives).forEach(key => variableCategories[key] = 'objectives');
+                    }}
+                    if (yamlData.constraints) {{
+                        Object.keys(yamlData.constraints).forEach(key => variableCategories[key] = 'constraints');
+                    }}
+                    if (yamlData.design_vars) {{
+                        Object.keys(yamlData.design_vars).forEach(key => variableCategories[key] = 'design_vars');
                     }}
                 }}
                 
-                // Update table based on clicked point
-                updateTable(pointIndex);
+                // Create table data with color coding via font property
+                const tableHeaders = ['Variable', `Iteration ${{pointIndex}}`];
+                const variableNames = [];
+                const variableColors = [];
+                const values = [];
                 
-                // Highlight the clicked point
-                highlightPoint(pointIndex);
-            }}
-        }});
-        
-        function updateTable(iterationIndex) {{
-            if (!csvData) return;
-            
-            // Parse CSV data
-            const df = JSON.parse(csvData);
-            const columns = df.columns;
-            const data = df.data;
-            
-            // Get row data for selected iteration
-            const rowData = data[iterationIndex];
-            
-            // Extract variable categories
-            const variableCategories = {{}};
-            if (yamlData) {{
-                if (yamlData.objectives) {{
-                    Object.keys(yamlData.objectives).forEach(key => variableCategories[key] = 'objectives');
-                }}
-                if (yamlData.constraints) {{
-                    Object.keys(yamlData.constraints).forEach(key => variableCategories[key] = 'constraints');
-                }}
-                if (yamlData.design_vars) {{
-                    Object.keys(yamlData.design_vars).forEach(key => variableCategories[key] = 'design_vars');
-                }}
-            }}
-            
-            // Create table data with color coding via font property
-            const tableHeaders = ['Variable', 'Value'];
-            const variableNames = [];
-            const variableColors = [];
-            const values = [];
-            
-            columns.forEach((col, idx) => {{
-                const category = variableCategories[col] || 'other';
-                let color = '#212529';
-                if (category === 'objectives') color = '#0d6efd';
-                else if (category === 'constraints') color = '#fd7e14';
-                else if (category === 'design_vars') color = '#198754';
+                columns.forEach((col, idx) => {{
+                    const category = variableCategories[col] || 'other';
+                    let color = '#212529';
+                    if (category === 'objectives') color = '#0d6efd';
+                    else if (category === 'constraints') color = '#fd7e14';
+                    else if (category === 'design_vars') color = '#198754';
+                    
+                    variableNames.push(col);
+                    variableColors.push(color);
+                    
+                    // Safely format value
+                    const value = rowData[idx];
+                    if (value !== null && value !== undefined && typeof value === 'number') {{
+                        values.push(value.toFixed(6));
+                    }} else if (value !== null && value !== undefined) {{
+                        values.push(String(value));
+                    }} else {{
+                        values.push('N/A');
+                    }}
+                }});
                 
-                variableNames.push(col);
-                variableColors.push(color);
-                values.push(rowData[idx]?.toFixed(6) || 'N/A');
-            }});
-            
-            const tableData = [{{
-                type: 'table',
-                header: {{
-                    values: tableHeaders,
-                    align: 'left',
-                    fill: {{color: '#f8f9fa'}},
-                    font: {{size: 14, color: '#212529', family: 'Arial, sans-serif'}}
-                }},
-                cells: {{
-                    values: [variableNames, values],
-                    align: ['left', 'right'],
-                    fill: {{color: 'white'}},
-                    font: [
-                        {{size: 13, family: 'Arial, sans-serif', color: variableColors}},
-                        {{size: 13, family: 'Arial, sans-serif', color: '#212529'}}
-                    ],
-                    height: 30
+                const tableData = [{{
+                    type: 'table',
+                    header: {{
+                        values: tableHeaders,
+                        fill: {{color: '#2c3e50'}},
+                        align: 'left',
+                        font: {{size: 16, color: 'white', family: 'Arial, sans-serif'}},
+                        height: 40,
+                        line: {{color: '#34495e', width: 1}}
+                    }},
+                    cells: {{
+                        values: [variableNames, values],
+                        align: ['left', 'right'],
+                        fill: {{
+                            color: [['#e8f4fd'].concat(variableNames.map((_, i) => i % 2 === 0 ? '#f8f9fa' : '#ffffff'))]
+                        }},
+                        font: [
+                            {{size: 14, family: 'Arial, sans-serif', color: variableColors}},
+                            {{size: 14, family: 'Arial, sans-serif', color: '#2c3e50'}}
+                        ],
+                        height: 35,
+                        line: {{color: '#bdc3c7', width: 0.5}}
+                    }}
+                }}];
+                
+                const tableLayout = {{
+                    margin: {{t: 10, b: 10, l: 10, r: 10}},
+                    height: 600
+                }};
+                
+                Plotly.newPlot('table', tableData, tableLayout);
+                
+                // Update iteration indicator
+                const indicator = document.getElementById('iterationIndicator');
+                if (indicator) {{
+                    indicator.textContent = `Iteration: ${{pointIndex}}`;
                 }}
-            }}];
-            
-            const tableLayout = {{
-                margin: {{t: 10, b: 10, l: 10, r: 10}},
-                height: 600
-            }};
-            
-            Plotly.newPlot('table', tableData, tableLayout);
+                
+                console.log('Table updated successfully for point index', pointIndex);
+            }} catch (error) {{
+                console.error('Error updating table:', error);
+            }}
         }}
         
         function highlightPoint(pointIndex) {{
-            highlightedPoint = pointIndex;
+            console.log('=== highlightPoint called with pointIndex:', pointIndex);
             
             // Find the main trace to get dimensions structure
             const mainTrace = initialData.find(t => t.name === 'Data Points');
-            if (!mainTrace || !mainTrace.dimensions) return;
+            if (!mainTrace || !mainTrace.dimensions) {{
+                console.error('Main trace not found or no dimensions');
+                return;
+            }}
             
             // Create highlight trace with the selected point
             const highlightDimensions = mainTrace.dimensions.map(dim => ({{
@@ -669,30 +641,49 @@ def register_visualization_callbacks(app):
             
             // Update the plot with new highlight
             Plotly.react('splom', currentData, splomFigure.layout);
+            console.log('Highlight updated for point index', pointIndex);
         }}
         
-        function clearHighlight() {{
-            highlightedPoint = null;
+        // Render SPLOM
+        Plotly.newPlot('splom', initialData, splomFigure.layout);
+        
+        // Initialize with pointIndex 0
+        console.log('Initializing with pointIndex 0');
+        updateTable(0);
+        
+        // Click event handler for SPLOM
+        document.getElementById('splom').on('plotly_click', function(data) {{
+            console.log('SPLOM clicked! Data:', data);
             
-            // Remove highlight trace - keep all original traces
-            const currentData = initialData.filter(trace => trace.name !== 'Highlighted');
-            Plotly.react('splom', currentData, splomFigure.layout);
+            let pointIndex = 0;
+            if (data.points && data.points.length > 0) {{
+                const point = data.points[0];
+                console.log('Clicked point:', point);
+                
+                // Get the point index - handle different trace types
+                pointIndex = point.pointIndex;
+                console.log('Point index from click:', pointIndex);
+                
+                // If clicked on Pareto or other trace, find the actual index in main data
+                if (point.data.name !== 'Data Points') {{
+                    console.log('Clicked on non-main trace, finding actual index...');
+                    const clickedValue = point.data.dimensions[0].values[point.pointIndex];
+                    const mainTrace = initialData.find(t => t.name === 'Data Points');
+                    if (mainTrace) {{
+                        pointIndex = mainTrace.dimensions[0].values.indexOf(clickedValue);
+                        console.log('Found actual pointIndex:', pointIndex);
+                    }}
+                }}
+            }}
+
+            console.log('Final pointIndex to use:', pointIndex);
             
-            // Clear table
-            Plotly.purge('table');
-            const emptyLayout = {{
-                annotations: [{{
-                    text: 'Click on a data point in the SPLOM to see detailed analysis',
-                    xref: 'paper',
-                    yref: 'paper',
-                    showarrow: false,
-                    font: {{size: 16, color: 'gray'}}
-                }}],
-                xaxis: {{visible: false}},
-                yaxis: {{visible: false}}
-            }};
-            Plotly.newPlot('table', [], emptyLayout);
-        }}
+            // Update table based on clicked point
+            updateTable(pointIndex);
+            
+            // Highlight the clicked point
+            highlightPoint(pointIndex);
+        }});
         
         function togglePareto() {{
             paretoVisible = !paretoVisible;
