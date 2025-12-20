@@ -17,6 +17,10 @@ The dashboard enables users to:
 * Export interactive visualizations for reports and presentations
 * Compare individual design iterations with detailed data tables
 
+.. video:: images/viz/MOO/dashboard.mov
+   :width: 900
+   :autoplay:
+
 Installation
 ------------
 
@@ -178,13 +182,18 @@ This allows visualization of array-valued design variables in the SPLOM.
 Interactive HTML Export
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``Download Dashboard`` button creates a standalone HTML file containing:
+The ``Download Dashboard`` button creates a standalone HTML file that saves the current status of the dashboard, allowing you to continue analysis offline. The exported file contains:
 
 * Full interactive SPLOM with all data points
+* Current selections and highlighted points
 * Click-through functionality for data table updates
 * Toggle controls for Pareto front and diagonal visibility
-* Highlighted point visualization
-* No external dependencies required
+* All optimization data embedded for complete offline access
+* No external dependencies or internet connection required
+
+.. video:: images/viz/MOO/export.mov
+   :width: 900
+   :autoplay:
 
 Configuration
 -------------
